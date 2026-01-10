@@ -1,6 +1,7 @@
 import ThemeToggle from "./ThemeToggle";
 import CyclingText from "./CyclingText";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Landing() {
   return (
@@ -70,9 +71,11 @@ export default function Landing() {
             <p className="text-base sm:text-lg lg:text-xl text-[var(--text-paragraph)] leading-relaxed font-sans">
               Empowering smart contracts with confidentiality to <br className="hidden sm:block"/> unlock use cases and enable widespread web3 adoption.
             </p>
-            <button className="px-5 py-2.5 sm:px-6 sm:py-3 bg-[var(--button-bg)] text-[var(--button-text)] rounded-lg font-medium hover:opacity-90 transition-all duration-200 text-sm sm:text-base">
-              Get Started
-            </button>
+            <Link href="/started">
+              <button className="px-5 py-2.5 sm:px-6 sm:py-3 bg-[var(--button-bg)] text-[var(--button-text)] rounded-lg font-medium hover:opacity-90 transition-all duration-200 text-sm sm:text-base">
+                Get Started
+              </button>
+            </Link>
           </div>
         </div>
       </main>
