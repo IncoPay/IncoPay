@@ -1,26 +1,48 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light Theme */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F9FAFB;
+  --bg-box: #FFFFFF;
+  --border-color: #E8E8E8;
+  --text-primary: #000000;
+  --text-secondary: #E8E8E8;
+  --button-bg: #2463EB;
+  --button-text: #FFFFFF;
+  --hover-selected: #FF0000;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-box: var(--bg-box);
+  --color-border: var(--border-color);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-button-bg: var(--button-bg);
+  --color-button-text: var(--button-text);
+  --color-hover-selected: var(--hover-selected);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-theme="dark"] {
+  /* Dark Theme */
+  --bg-primary: #0A0A0A;
+  --bg-secondary: #0A0A0A;
+  --bg-box: #0A0A0A;
+  --border-color: #262626;
+  --text-primary: #FFFFFF;
+  --text-secondary: #262626;
+  --button-bg: #2463EB;
+  --button-text: #FFFFFF;
+  --hover-selected: #1F2937;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
