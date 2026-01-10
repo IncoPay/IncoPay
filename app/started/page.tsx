@@ -1,32 +1,67 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import { BackgroundBeams } from "../components/background-beams";
+import ThemeToggle from "../components/ThemeToggle";
 
 export default function Started() {
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] flex">
-      {/* Left side - Line */}
-      <div className="w-1/2 flex items-center justify-center">
-        <div className="w-full h-px bg-[var(--border-color)]"></div>
+      {/* Left side - Logo, Name, and Theme Toggle */}
+      <div className="w-1/2 flex flex-col items-start justify-start px-8 py-6 sm:px-12 sm:py-8">
+        <div className="w-full flex items-center justify-between gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--button-bg)] flex items-center justify-center">
+              <svg
+                className="w-6 h-6 sm:w-7 sm:h-7 text-white transition-colors"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Cloud shape */}
+                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" stroke="white" strokeWidth="1.5" fill="none"/>
+                {/* Data nodes inside cloud */}
+                <circle cx="12" cy="14" r="1.5" fill="white"/>
+                <circle cx="9" cy="12" r="1.5" fill="white"/>
+                <circle cx="15" cy="12" r="1.5" fill="white"/>
+                <circle cx="10.5" cy="16" r="1.5" fill="white"/>
+                <circle cx="13.5" cy="16" r="1.5" fill="white"/>
+                {/* Connection lines */}
+                <line x1="12" y1="14" x2="9" y2="12" stroke="white" strokeWidth="0.8" opacity="0.4"/>
+                <line x1="12" y1="14" x2="15" y2="12" stroke="white" strokeWidth="0.8" opacity="0.4"/>
+                <line x1="12" y1="14" x2="10.5" y2="16" stroke="white" strokeWidth="0.8" opacity="0.4"/>
+                <line x1="12" y1="14" x2="13.5" y2="16" stroke="white" strokeWidth="0.8" opacity="0.4"/>
+              </svg>
+            </div>
+            <Link href="/home" className="text-lg sm:text-2xl font-bold text-[var(--text-primary)] font-serif hover:opacity-80 transition-opacity cursor-pointer">
+              IncoPay
+            </Link>
+          </div>
+          <ThemeToggle />
+        </div>
       </div>
       
-      {/* Right side - BackgroundBeams Demo */}
-      <div className="w-1/2 h-screen rounded-md bg-[var(--bg-primary)] relative flex flex-col items-center justify-center antialiased overflow-hidden">
+      {/* Right side - Text Content with BackgroundBeams (Fixed theme - doesn't change) */}
+      <div className="w-1/2 h-screen rounded-md bg-[#0A0A0A] relative flex flex-col items-center justify-center antialiased overflow-hidden">
         <div className="max-w-2xl mx-auto p-4 relative z-10">
-          <h1 className="relative z-10 text-lg md:text-7xl bg-clip-text text-transparent bg-gradient-to-b from-[var(--text-primary)] to-[var(--text-paragraph)] text-center font-sans font-bold">
-            Join the waitlist
-          </h1>
-          <p className="text-[var(--text-paragraph)] max-w-lg mx-auto my-2 text-sm text-center relative z-10">
-            Welcome to IncoPay, the best confidential payment service on the web.
-            We provide reliable, scalable, and customizable payment solutions for
-            your business. Whether you&apos;re sending confidential transactions,
-            secure payments, or private transfers, IncoPay has got you covered.
+          <div className="space-y-2 sm:space-y-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold relative z-10 bg-clip-text text-transparent bg-gradient-to-r from-[#2463EB] via-[#2463EB] to-[#2463EB]">
+              Private.
+            </h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold relative z-10 bg-clip-text text-transparent bg-gradient-to-r from-[#2463EB] via-[#2463EB] to-[#2463EB]">
+              Anonymous.
+            </h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold relative z-10 bg-clip-text text-transparent bg-gradient-to-r from-[#2463EB] via-[#2463EB] to-[#2463EB]">
+              Unlinkable.
+            </h2>
+          </div>
+          <p className="text-[#FFFFFF] max-w-lg mx-auto mt-6 sm:mt-8 text-base sm:text-md lg:text-lg relative z-10 font-sans">
+            Welcome to the world of private transaction. Everything you need is privacy and we are here to help you with this.
           </p>
-          <input
-            type="text"
-            placeholder="hi@example.com"
-            className="rounded-lg border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--button-bg)] w-full relative z-10 mt-4 bg-[var(--bg-box)] text-[var(--text-primary)] placeholder:text-[var(--text-paragraph)] px-4 py-2"
-          />
         </div>
         <BackgroundBeams />
       </div>
