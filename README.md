@@ -1,6 +1,6 @@
-# Confidential x402 on Solana
+# IncoPay
 
-A confidential x402 implementation on Solana, powered by [Inco Network](https://inco.org).
+A confidential payment application on Solana, powered by [Inco Network](https://inco.org).
 
 ## Getting Started
 

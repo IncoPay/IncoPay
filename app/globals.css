@@ -8,6 +8,7 @@
   --border-color: #E8E8E8;
   --text-primary: #000000;
   --text-secondary: #E8E8E8;
+  --text-paragraph: #666666;
   --button-bg: #2463EB;
   --button-text: #FFFFFF;
   --hover-selected: #FF0000;
@@ -20,10 +21,11 @@
   --color-border: var(--border-color);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
+  --color-text-paragraph: var(--text-paragraph);
   --color-button-bg: var(--button-bg);
   --color-button-text: var(--button-text);
   --color-hover-selected: var(--hover-selected);
-  --font-sans: var(--font-geist-sans);
+  --font-serif: var(--font-serif);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -35,6 +37,7 @@
   --border-color: #262626;
   --text-primary: #FFFFFF;
   --text-secondary: #262626;
+  --text-paragraph: #B3B3B3;
   --button-bg: #2463EB;
   --button-text: #FFFFFF;
   --hover-selected: #1F2937;
@@ -43,6 +46,10 @@
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif), Georgia, 'Times New Roman', serif;
 }
