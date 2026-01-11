@@ -7,8 +7,9 @@ import ThemeToggle from "../components/ThemeToggle";
 export default function Started() {
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] flex">
-      {/* Left side - Logo, Name, and Theme Toggle */}
-      <div className="w-1/2 flex flex-col items-start justify-start px-8 py-6 sm:px-12 sm:py-8">
+      {/* Left side - Logo, Name, Theme Toggle, and Payment Box */}
+      <div className="w-1/2 relative flex flex-col px-8 py-6 sm:px-12 sm:py-8">
+        {/* Header at top */}
         <div className="w-full flex items-center justify-between gap-2 sm:gap-3">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--button-bg)] flex items-center justify-center">
@@ -37,11 +38,31 @@ export default function Started() {
                 <line x1="12" y1="14" x2="13.5" y2="16" stroke="white" strokeWidth="0.8" opacity="0.4"/>
               </svg>
             </div>
-            <Link href="/home" className="text-lg sm:text-2xl font-bold text-[var(--text-primary)] font-serif hover:opacity-80 transition-opacity cursor-pointer">
+            <Link href="/" className="text-lg sm:text-2xl font-bold text-[var(--text-primary)] font-serif hover:opacity-80 transition-opacity cursor-pointer">
               IncoPay
             </Link>
           </div>
           <ThemeToggle />
+        </div>
+        
+        {/* Payment Box - Centered in middle */}
+        <div className="flex-1 flex flex-col items-center justify-center space-y-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--text-primary)] font-serif">
+            402 Premium Content
+          </h2>
+          <div className="w-full max-w-lg bg-[var(--bg-box)] border border-[var(--border-color)] rounded-lg p-8 sm:p-10 space-y-6">
+            <p className="text-base sm:text-lg text-[var(--text-paragraph)] font-sans">
+              Access exclusive content through confidential x402
+            </p>
+            <div className="space-y-4">
+              <p className="text-xl sm:text-2xl font-semibold text-[var(--text-primary)] font-sans">
+                Price: 1 USDC
+              </p>
+              <button className="w-full px-6 py-3 bg-[var(--button-bg)] text-[var(--button-text)] rounded-lg font-medium hover:opacity-90 transition-all duration-200 text-base sm:text-lg">
+                Pay
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       
