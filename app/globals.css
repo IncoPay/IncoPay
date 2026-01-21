@@ -53,3 +53,30 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-serif), Georgia, 'Times New Roman', serif;
 }
+
+/* Wallet Adapter Button Styling */
+.wallet-adapter-button {
+  background-color: var(--button-bg) !important;
+  color: var(--button-text) !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+  transition: opacity 0.2s !important;
+  height: auto !important;
+  padding: 0.5rem 1rem !important;
+  font-size: 0.875rem !important;
+}
+
+.wallet-adapter-button:hover {
+  opacity: 0.9 !important;
+  background-color: var(--button-bg) !important;
+}
+
+.wallet-adapter-button:not([disabled]):hover {
+  opacity: 0.9 !important;
+}
+
+@media (min-width: 640px) {
+  .wallet-adapter-button {
+    font-size: 1rem !important;
+  }
+}

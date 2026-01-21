@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { BackgroundBeams } from "../components/background-beams";
 import ThemeToggle from "../components/ThemeToggle";
+import WalletButton from "../components/WalletButton";
 
 export default function Started() {
   return (
@@ -42,7 +43,10 @@ export default function Started() {
               IncoPay
             </Link>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <WalletButton />
+            <ThemeToggle />
+          </div>
         </div>
         
         {/* Payment Box - Centered in middle */}

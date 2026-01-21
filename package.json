@@ -9,11 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@inco/solana-sdk": "^0.0.2",
-    "@solana/web3.js": "^1.98.4",
     "@coral-xyz/anchor": "^0.31.0",
-    "clsx": "^2.1.0",
+    "@inco/solana-sdk": "^0.0.2",
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/wallet-adapter-wallets": "^0.19.37",
+    "@solana/web3.js": "^1.98.4",
     "axios": "^1.8.4",
+    "clsx": "^2.1.0",
     "motion": "^12.25.0",
     "next": "16.1.1",
     "react": "19.2.3",
@@ -29,5 +33,10 @@
     "eslint-config-next": "16.1.1",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "packageManager": "yarn@3.2.3+sha512.f26f951f67de0c6a33ee381e5ff364709c87e70eb5e65c694e4facde3512f1fa80b8679e6ba31ce7d340fbb46f08dd683af9457e240f25a204be7427940d767e",
+  "resolutions": {
+    "@solana/errors": "^2.0.0",
+    "@solana/codecs-core": "^2.0.0"
   }
 }
