@@ -2,6 +2,7 @@ import ThemeToggle from "./ThemeToggle";
 import CyclingText from "./CyclingText";
 import Image from "next/image";
 import Link from "next/link";
+import LandingDiagram from "./LandingDiagram";
 
 export default function Landing() {
   return (
@@ -41,9 +42,9 @@ export default function Landing() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 sm:px-8 py-8 sm:py-12 mt-8 sm:mt-12">
-        <div className="max-w-4xl">
-          {/* Text Content */}
+      <main className="container mx-auto px-4 sm:px-8 py-4 sm:py-6 mt-4 sm:mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
+          {/* Left: Text Content */}
           <div className="space-y-4 sm:space-y-6">
             {/* X402 on Solana powered by Inco - Small text above */}
             <p className="text-sm sm:text-base lg:text-xl text-[var(--text-paragraph)] flex items-center gap-2 mb-2 sm:mb-4 font-sans flex-wrap">
@@ -76,6 +77,11 @@ export default function Landing() {
                 Get Started
               </button>
             </Link>
+          </div>
+
+          {/* Right: Diagram */}
+          <div className="hidden lg:flex items-center justify-center h-full">
+            <LandingDiagram />
           </div>
         </div>
       </main>
