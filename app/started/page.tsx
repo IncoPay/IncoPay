@@ -2,8 +2,8 @@
 import React from "react";
 import Link from "next/link";
 import { BackgroundBeams } from "../components/background-beams";
-import ThemeToggle from "../components/ThemeToggle";
 import WalletButton from "../components/WalletButton";
+import Plasma from "@/components/Plasma";
 
 export default function Started() {
   return (
@@ -45,7 +45,6 @@ export default function Started() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <WalletButton />
-            <ThemeToggle />
           </div>
         </div>
         
@@ -70,25 +69,52 @@ export default function Started() {
         </div>
       </div>
       
-      {/* Right side - Text Content with BackgroundBeams (Fixed theme - doesn't change) */}
-      <div className="w-1/2 h-screen rounded-md bg-[#0A0A0A] relative flex flex-col items-center justify-center antialiased overflow-hidden">
-        <div className="max-w-2xl mx-auto p-4 relative z-10">
-          <div className="space-y-2 sm:space-y-4">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold relative z-10 bg-clip-text text-transparent bg-gradient-to-r from-[#2463EB] via-[#2463EB] to-[#2463EB]">
-              Private.
-            </h2>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold relative z-10 bg-clip-text text-transparent bg-gradient-to-r from-[#2463EB] via-[#2463EB] to-[#2463EB]">
-              Anonymous.
-            </h2>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold relative z-10 bg-clip-text text-transparent bg-gradient-to-r from-[#2463EB] via-[#2463EB] to-[#2463EB]">
-              Unlinkable.
-            </h2>
-          </div>
-          <p className="text-[#FFFFFF] max-w-lg mx-auto mt-6 sm:mt-8 text-base sm:text-md lg:text-lg relative z-10 font-sans">
-            Welcome to the world of private transaction. Everything you need is privacy and we are here to help you with this.
-          </p>
+      {/* Right side - Text Content with Plasma Background */}
+      <div className="w-1/2 h-screen rounded-md bg-black relative antialiased overflow-hidden">
+        {/* Plasma Background - Full Coverage */}
+        <div 
+          className="absolute inset-0"
+          style={{ 
+            width: '100%',
+            height: '100vh',
+            zIndex: 0,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+          }}
+        >
+          <Plasma
+            color="#2463EB"
+            speed={0.6}
+            direction="forward"
+            scale={1.0}
+            opacity={1}
+            mouseInteractive={true}
+          />
         </div>
-        <BackgroundBeams />
+        {/* Text Content Overlay */}
+        <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
+          <div className="max-w-2xl mx-auto p-4">
+            <div className="space-y-2 sm:space-y-4 ml-4 sm:ml-8">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#2463EB] drop-shadow-lg">
+                Private.
+              </h2>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#2463EB] drop-shadow-lg">
+                Anonymous.
+              </h2>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#2463EB] drop-shadow-lg">
+                Unlinkable.
+              </h2>
+            </div>
+            <div className="flex items-center justify-center mt-6 sm:mt-8">
+              <p className="text-xs sm:text-sm text-[#FFFFFF] flex items-center justify-center gap-2 px-4 py-2 sm:px-6 sm:py-3 border border-[var(--border-color)] rounded-full font-sans flex-wrap bg-black/40 backdrop-blur-sm leading-relaxed max-w-lg">
+                Welcome to the world of private transaction. Everything you need is privacy and we are here to help you with this.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

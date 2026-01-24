@@ -1,5 +1,12 @@
+"use client";
+
 import Landing from "./components/Landing";
 
 export default function Home() {
-  return <Landing />;
+  return (
+    <div className="relative min-h-screen">
+      {/* Landing Content */}
+      <Landing />
+    </div>
+  );
 }

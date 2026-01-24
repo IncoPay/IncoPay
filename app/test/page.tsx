@@ -5,7 +5,6 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram, Connection, Transaction } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { encryptAmount } from "./utils/confidentialTransfer";
-import ThemeToggle from "../components/ThemeToggle";
 import WalletButton from "../components/WalletButton";
 import Link from "next/link";
 
@@ -326,7 +325,6 @@ export default function TestPage() {
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <WalletButton />
-          <ThemeToggle />
         </div>
       </header>
 
