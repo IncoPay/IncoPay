@@ -7,9 +7,30 @@ import Plasma from "@/components/Plasma";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-transparent text-[var(--text-primary)] transition-colors relative z-10">
+    <div className="min-h-screen bg-black text-[var(--text-primary)] transition-colors relative z-10 overflow-hidden">
+      {/* Plasma Background - Only in main content area */}
+      <div 
+        className="absolute inset-0 -z-10" 
+        style={{ 
+          width: '100%', 
+          height: '100vh',
+          position: 'absolute',
+          top: 0,
+          left: 0
+        }}
+      >
+        <Plasma
+          color="#2463EB"
+          speed={0.6}
+          direction="forward"
+          scale={1.0}
+          opacity={1}
+          mouseInteractive={true}
+        />
+      </div>
+
       {/* Header */}
-      <header className="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6 border-b border-[var(--border-color)] bg-[var(--bg-primary)] relative z-20">
+      <header className="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6 border-b border-[var(--border-color)] bg-black relative z-20">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--button-bg)] flex items-center justify-center">
             <svg
@@ -43,33 +64,18 @@ export default function Landing() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 sm:px-8 py-2 sm:py-4 mt-1 sm:mt-2 relative" style={{ minHeight: 'calc(100vh - 100px)' }}>
-        {/* Plasma Background - Only in main content area */}
-        <div 
-          className="absolute inset-0 -z-10" 
-          style={{ 
-            width: '100%', 
-            height: '100vh',
-            position: 'absolute',
-            top: 0,
-            left: 0
-          }}
-        >
-          <Plasma
-            color="#2463EB"
-            speed={0.6}
-            direction="forward"
-            scale={1.0}
-            opacity={1}
-            mouseInteractive={true}
-          />
-        </div>
-        <div className="flex items-center justify-center min-h-[calc(100vh-100px)] relative z-10">
+        
+        {/* Background Glow Effects */}
+        <div className="absolute w-96 h-96 bg-[#2463EB]/20 rounded-full blur-3xl opacity-60 bottom-10 left-10 animate-pulse pointer-events-none -z-5"></div>
+        <div className="absolute w-96 h-96 bg-[#2463EB]/15 rounded-full blur-3xl opacity-50 top-10 right-10 animate-pulse pointer-events-none -z-5"></div>
+
+        <div className="flex items-center justify-center min-h-[calc(100vh-150px)] relative z-10">
           {/* Centered Text Content */}
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="space-y-4 sm:space-y-5">
+          <div className="text-center max-w-5xl mx-auto">
+            <div className="space-y-6 sm:space-y-8">
               {/* X402 on Solana powered by Inco - Small text above */}
               <div className="inline-flex items-center justify-center mb-2 sm:mb-4">
-                <p className="text-sm sm:text-base lg:text-xl text-[var(--text-paragraph)] flex items-center justify-center gap-2 px-4 py-2 sm:px-6 sm:py-3 border border-[var(--border-color)] rounded-full font-sans flex-wrap bg-[var(--bg-primary)] relative z-10">
+                <p className="text-sm sm:text-base lg:text-xl text-[var(--text-paragraph)] flex items-center justify-center gap-2 px-4 py-2 sm:px-6 sm:py-3 border border-[var(--border-color)] rounded-full font-sans flex-wrap bg-[var(--bg-primary)]/80 backdrop-blur-sm relative z-10">
                   <span>X402 on</span>
                   <Image
                     src="https://s2.coinmarketcap.com/static/img/coins/200x200/5426.png"
@@ -89,25 +95,35 @@ export default function Landing() {
                 </p>
               </div>
               
-              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-[var(--text-primary)] font-serif leading-tight">
-                Confidential <CyclingText />
-              </h2>
-              <div className="inline-flex items-center justify-center">
-                <p className="text-xs sm:text-sm text-[var(--text-paragraph)] flex items-center justify-center gap-2 px-4 py-2 sm:px-6 sm:py-3 border border-[var(--border-color)] rounded-full font-sans flex-wrap bg-[var(--bg-primary)] relative z-10 leading-relaxed">
-                  Empowering smart contracts with confidentiality to <br className="hidden sm:block"/> unlock use cases and enable widespread web3 adoption.
-                </p>
-              </div>
+              {/* Main Headline */}
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold font-serif mb-6 leading-normal text-white drop-shadow-xl">
+                <span className="whitespace-nowrap">Confidential <span className="px-2 bg-[#2463EB] text-white">Payments*</span>.</span>
+                <br /> 
+                Private <span className="px-2 bg-[#2463EB] text-white">Facilator</span>.
+              </h1>
+              
+              {/* Subtext */}
+              <p className="text-lg md:text-xl text-zinc-300 max-w-3xl mx-auto mb-10 leading-relaxed font-sans drop-shadow-md">
+                Empowering smart contracts with confidentiality to unlock use cases and enable widespread web3 adoption.
+              </p>
             </div>
+            
             {/* Get Started and Docs Buttons - Below the paragraph */}
-            <div className="mt-4 sm:mt-6 flex items-center justify-center gap-3 sm:gap-4 -ml-4 sm:-ml-6">
+            <div className="mt-8 sm:mt-10 flex items-center justify-center gap-4 sm:gap-6">
               <Link href="/started">
-                <button className="px-5 py-2.5 sm:px-6 sm:py-3 bg-[var(--button-bg)] text-[var(--button-text)] rounded-lg font-medium hover:opacity-90 transition-all duration-200 text-sm sm:text-base">
-                  Get Started
+                <button className="px-8 py-3 bg-[var(--button-bg)] text-[var(--button-text)] rounded-sm font-medium text-lg hover:opacity-90 transition-all duration-200 border border-transparent relative group overflow-hidden">
+                  <span className="relative z-10">Get Started</span>
+                  <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                 </button>
               </Link>
               <Link href="/docs">
-                <button className="px-5 py-2.5 sm:px-6 sm:py-3 bg-black text-white rounded-lg font-medium hover:opacity-90 transition-all duration-200 text-sm sm:text-base">
-                  Docs
+                <button className="px-8 py-3 bg-transparent text-white border border-[#2463EB] rounded-sm font-medium text-lg hover:bg-[#2463EB]/10 transition-all duration-200 relative group">
+                  <span className="relative z-10">Docs</span>
+                  {/* Corner accents for Docs button */}
+                  <div className="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-[#2463EB]"></div>
+                  <div className="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-[#2463EB]"></div>
+                  <div className="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-[#2463EB]"></div>
+                  <div className="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-[#2463EB]"></div>
                 </button>
               </Link>
             </div>
@@ -117,4 +133,3 @@ export default function Landing() {
     </div>
   );
 }
-
