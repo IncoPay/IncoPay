@@ -10,6 +10,7 @@ import {
     Keypair, 
     PublicKey,
     Transaction,
+    SystemProgram,
     sendAndConfirmTransaction
 } from '@solana/web3.js';
 import {
@@ -146,36 +147,40 @@ async function deployToken(config: TokenConfig): Promise<PublicKey> {
     const balance = await connection.getBalance(payer.publicKey);
     console.log(`💰 Payer balance: ${balance / 1e9} SOL`);
     
-    if (balance < 0.1 * 1e9) {
-        console.warn('⚠️  Warning: Low balance. Consider airdropping SOL:');
-        console.warn(`   solana airdrop 2 ${payer.publicKey.toBase58()} --url ${NETWORK}\n`);
+    // Get minimum balance for rent-exempt mint
+    const mintRent = await getMinimumBalanceForRentExemptMint(connection);
+    const requiredBalance = mintRent + (0.01 * 1e9); // Mint rent + transaction fees
+    
+    console.log(`💵 Rent-exempt amount: ${mintRent / 1e9} SOL`);
+    console.log(`💵 Required balance: ${requiredBalance / 1e9} SOL\n`);
+    
+    if (balance < requiredBalance) {
+        console.error('❌ Insufficient balance!');
+        console.error(`   Current: ${balance / 1e9} SOL`);
+        console.error(`   Required: ${requiredBalance / 1e9} SOL`);
+        console.error(`\n   Please airdrop SOL:`);
+        console.error(`   solana airdrop 2 ${payer.publicKey.toBase58()} --url ${NETWORK}\n`);
+        throw new Error(`Insufficient balance. Need at least ${requiredBalance / 1e9} SOL`);
     }
     
-    // Get minimum balance for rent-exempt mint
-    const lamports = await getMinimumBalanceForRentExemptMint(connection);
-    console.log(`💵 Rent-exempt amount: ${lamports / 1e9} SOL\n`);
+    // Step 1: Create and initialize mint account
+    console.log('[1/4] Creating and initializing mint account...');
     
-    // Step 1: Create mint account
-    console.log('[1/4] Creating mint account...');
-    const createMintTransaction = new Transaction().add(
-        // Create account
-        await connection.getLatestBlockhash().then(blockhash => {
-            const transaction = new Transaction().add(
-                // System program create account instruction would go here
-                // For simplicity, we'll use the spl-token helper
-            );
-            return transaction;
+    // Create transaction with both account creation and initialization
+    const mintTransaction = new Transaction();
+    
+    // Add instruction to create the mint account
+    mintTransaction.add(
+        SystemProgram.createAccount({
+            fromPubkey: payer.publicKey,
+            newAccountPubkey: mintKeypair.publicKey,
+            space: MINT_SIZE,
+            lamports: mintRent,
+            programId: TOKEN_PROGRAM_ID,
         })
     );
     
-    // Actually, we need to create the account first, then initialize
-    // Let's use a simpler approach with createInitializeMintInstruction
-    const mintTransaction = new Transaction();
-    
-    // Create the mint account (simplified - in production you'd create the account first)
-    // For now, we'll assume the account creation is handled
-    
-    // Initialize mint
+    // Add instruction to initialize the mint
     mintTransaction.add(
         createInitializeMintInstruction(
             mintKeypair.publicKey,
@@ -192,7 +197,7 @@ async function deployToken(config: TokenConfig): Promise<PublicKey> {
         [payer, mintKeypair],
         { commitment: 'confirmed' }
     );
-    console.log(`✓ Mint initialized: ${signature}\n`);
+    console.log(`✓ Mint created and initialized: ${signature}\n`);
     
     // Step 2: Create associated token account for payer
     console.log('[2/4] Creating associated token account...');

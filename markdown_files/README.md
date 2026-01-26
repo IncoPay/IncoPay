@@ -1,0 +1,22 @@
+# Documentation Files
+
+This folder contains all the documentation and guides for the project.
+
+## Available Guides
+
+- **HOW_TO_DEPLOY.md** - Step-by-step guide for deploying the IncoToken program
+- **RUN_GUIDE.md** - Complete guide on how to run the application and all services
+- **SETUP_FACILITATOR.md** - Setup guide for the x402 facilitator with Kora integration
+- **QUICK_START.md** - Quick start guide for facilitator setup
+- **DEMO_GUIDE.md** - Guide for building the confidential payment demo
+
+## Component-Specific Documentation
+
+- `../app/facilator/README.md` - Facilitator component documentation
+- `../lightning-rod-solana/README.md` - IncoToken program documentation
+- `../lightning-rod-solana/DEPLOY_ALTERNATIVES.md` - Alternative deployment methods
+- `../lightning-rod-solana/X402_INTEGRATION_GUIDE.md` - x402 protocol integration guide
+
+## Main README
+
+The main project README is located at `../README.md` in the root directory.

@@ -8,7 +8,10 @@ import nacl from "tweetnacl";
 export { hexToBuffer };
 
 export const INCO_LIGHTNING_PROGRAM_ID = new PublicKey("5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj");
-export const INCO_TOKEN_PROGRAM_ID = new PublicKey("4cyJHzecVWuU2xux6bCAPAhALKQT8woBh4Vx3AGEGe5N");
+// Program ID - will be updated after deployment
+// Original: 4cyJHzecVWuU2xux6bCAPAhALKQT8woBh4Vx3AGEGe5N
+// New (from build): 9Cir3JKBcQ1mzasrQNKWMiGVZvYu3dxvfkGeQ6mohWWi
+export const INCO_TOKEN_PROGRAM_ID = new PublicKey("9Cir3JKBcQ1mzasrQNKWMiGVZvYu3dxvfkGeQ6mohWWi");
 
 export function extractHandleFromAnchor(anchorHandle: any): bigint {
   if (anchorHandle && anchorHandle._bn) {

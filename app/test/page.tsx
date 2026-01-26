@@ -151,22 +151,34 @@ export default function TestPage() {
 
       // Load the program by fetching IDL (workspace is not available in browser)
       let program: any = null;
+      const programId: PublicKey = INCO_TOKEN_PROGRAM_ID;
+      
       try {
-        // Try to fetch IDL from on-chain program
-        // Note: fetchIdl signature may vary by Anchor version
-        const programId: PublicKey = INCO_TOKEN_PROGRAM_ID;
+        // Try to fetch IDL from on-chain program first
         const idl: anchor.Idl | null = await (anchor.Program as any).fetchIdl(programId, provider);
         
-        if (!idl) {
-          throw new Error("Could not fetch IDL from on-chain program. The program may not be deployed or IDL may not be available.");
+        if (idl) {
+          // Create program with IDL from on-chain
+          program = new (anchor.Program as any)(idl, programId, provider);
+        } else {
+          throw new Error("IDL not found on-chain");
         }
-        
-        // Create program with IDL (using any to bypass browser type issues)
-        program = new (anchor.Program as any)(idl, programId, provider);
       } catch (idlError: any) {
-        setStatus(`⚠️ Program IDL not found.\n\nTo enable transfers, please:\n1. cd lightning-rod-solana\n2. anchor build\n3. anchor deploy --provider.cluster devnet\n4. Ensure IDL is uploaded to the program\n\nError: ${idlError.message}`);
-        setLoading(false);
-        return;
+        // Fallback: Try to load IDL from local file
+        try {
+          const idlResponse = await fetch('/idl/inco_token.json');
+          if (idlResponse.ok) {
+            const idl = await idlResponse.json();
+            program = new (anchor.Program as any)(idl, programId, provider);
+            setStatus("✓ Loaded IDL from local file. Proceeding with transfer...");
+          } else {
+            throw new Error("IDL file not found");
+          }
+        } catch (fileError: any) {
+          setStatus(`⚠️ Program IDL not found.\n\nTo enable transfers, you need to:\n\n1. Build and deploy the IncoToken program:\n   cd lightning-rod-solana\n   yarn install\n   anchor build\n   anchor deploy --provider.cluster devnet\n\n2. Upload IDL to program:\n   anchor idl init --filepath target/idl/inco_token.json ${programId.toBase58()} --provider.cluster devnet\n\nOR copy IDL to public folder:\n   cp lightning-rod-solana/target/idl/inco_token.json my-app/public/idl/inco_token.json\n\nSee DEPLOY_INCO_TOKEN.md for detailed instructions.\n\nError: ${idlError.message}`);
+          setLoading(false);
+          return;
+        }
       }
 
       if (!program) {
