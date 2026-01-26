@@ -331,9 +331,47 @@ export default function TestPage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 sm:px-8 py-8 sm:py-12">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--text-primary)] font-serif mb-8">
-            Confidential Transfer Test
-          </h1>
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--text-primary)] font-serif">
+              Token Deployment & Confidential Transfer
+            </h1>
+            <Link 
+              href="/test1"
+              className="px-4 py-2 bg-[#2463EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors text-sm"
+            >
+              Test Facilitator →
+            </Link>
+          </div>
+
+          {/* Token Deployment Section */}
+          <div className="bg-[var(--bg-box)] border border-[var(--border-color)] rounded-lg p-6 mb-6">
+            <h2 className="text-xl sm:text-2xl font-semibold text-[var(--text-primary)] font-serif mb-4">
+              Step 0: Deploy Custom Token
+            </h2>
+            <p className="text-[var(--text-paragraph)] font-sans mb-4">
+              Deploy your custom SPL token (similar to Inco token) for confidential transfers.
+            </p>
+            <div className="space-y-3">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200 font-sans mb-2">
+                  ⚠️ Before deploying, ensure:
+                </p>
+                <ul className="text-xs text-yellow-700 dark:text-yellow-300 font-sans space-y-1 ml-4">
+                  <li>• You have PAYER_PRIVATE_KEY in .env.local (or it will be auto-generated)</li>
+                  <li>• Payer address has SOL for deployment fees</li>
+                  <li>• Run: <code className="bg-yellow-100 dark:bg-yellow-900/40 px-1 rounded">yarn deploy-token</code></li>
+                </ul>
+              </div>
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg p-4">
+                <p className="text-sm font-medium text-[var(--text-primary)] font-sans mb-2">
+                  Token Mint Address:
+                </p>
+                <code className="text-xs text-[var(--text-paragraph)] font-mono break-all">
+                  {process.env.NEXT_PUBLIC_TOKEN_MINT || 'Not deployed yet'}
+                </code>
+              </div>
+            </div>
+          </div>
 
           {!connected && (
             <div className="bg-[var(--bg-box)] border border-[var(--border-color)] rounded-lg p-6 mb-6">
@@ -489,12 +527,14 @@ export default function TestPage() {
               <p className="text-xs font-medium text-yellow-800 dark:text-yellow-200 font-sans mb-1">
                 ⚠️ Setup Required
               </p>
-              <p className="text-xs text-yellow-700 dark:text-yellow-300 font-sans">
-                To enable full transfer functionality, build the IncoToken program:
+              <p className="text-xs text-yellow-700 dark:text-yellow-300 font-sans mb-2">
+                To enable full transfer functionality:
               </p>
-              <code className="block mt-2 text-xs bg-yellow-100 dark:bg-yellow-900/40 px-2 py-1 rounded font-mono">
-                cd lightning-rod-solana && anchor build
-              </code>
+              <ol className="text-xs text-yellow-700 dark:text-yellow-300 font-sans space-y-1 ml-4">
+                <li>1. Deploy custom token: <code className="bg-yellow-100 dark:bg-yellow-900/40 px-1 rounded">yarn deploy-token</code></li>
+                <li>2. Build IncoToken program: <code className="bg-yellow-100 dark:bg-yellow-900/40 px-1 rounded">cd lightning-rod-solana && anchor build</code></li>
+                <li>3. Facilitator integration will be added later</li>
+              </ol>
             </div>
           </div>
         </div>

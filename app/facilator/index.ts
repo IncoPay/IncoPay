@@ -1,21 +1,29 @@
+/**
+ * Facilitator Backend Logic
+ * 
+ * This module exports the core facilitator functionality for x402 protocol.
+ * The actual server implementation is in server.ts
+ */
+
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
-// Note: In a real backend environment, you would import @inco-network/solana-sdk 
-// and other server-side libraries here.
 
 export interface FacilatorConfig {
   rpcUrl: string;
-  incoRpcUrl: string;
+  incoRpcUrl?: string;
   privateKey?: string; // Should be loaded from env in production
+  koraRpcUrl?: string;
+  koraApiKey?: string;
 }
 
 export class FacilatorNode {
   private connection: Connection;
   private isActive: boolean = false;
   private processedCount: number = 0;
+  private config: FacilatorConfig;
   
   constructor(config: FacilatorConfig) {
+    this.config = config;
     this.connection = new Connection(config.rpcUrl, 'confirmed');
-    // Initialize Inco connection here
     console.log('Facilator Node initialized');
   }
 
@@ -68,14 +76,10 @@ export class FacilatorNode {
     return {
       isActive: this.isActive,
       processedCount: this.processedCount,
-      uptime: process.uptime()
+      uptime: process.uptime ? process.uptime() : 0
     };
   }
 }
 
-// Example usage
-// const node = new FacilatorNode({ 
-//   rpcUrl: 'https://api.devnet.solana.com',
-//   incoRpcUrl: 'https://testnet.inco.org' 
-// });
-// node.start();
+// Export server for use in API routes or standalone server
+export { default as facilitatorServer } from './server';
