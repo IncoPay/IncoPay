@@ -5,6 +5,7 @@ This folder contains all the documentation and guides for the project.
 ## Available Guides
 
 - **COMPLETE_WORKING_GUIDE.md** - End-to-end: Lightning Rod → IncoToken deploy → token setup → confidential transfer on /test (how it all worked)
+- **TEST1_FACILITATOR_STEPS.md** - Steps to test /test1 (facilitator: Health, Get Supported, Test Payment; with/without Kora)
 - **HOW_TO_DEPLOY.md** - Step-by-step guide for deploying the IncoToken program
 - **RUN_GUIDE.md** - Complete guide on how to run the application and all services
 - **SETUP_FACILITATOR.md** - Setup guide for the x402 facilitator with Kora integration

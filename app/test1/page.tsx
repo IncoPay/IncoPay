@@ -18,7 +18,7 @@ export default function TestFacilitatorPage() {
   const [loading, setLoading] = useState(false);
   const [paymentResult, setPaymentResult] = useState<any>(null);
 
-  const FACILITATOR_URL = process.env.NEXT_PUBLIC_FACILITATOR_URL || 'http://localhost:3000';
+  const FACILITATOR_URL = process.env.NEXT_PUBLIC_FACILITATOR_URL || 'http://localhost:3001';
   const TEST_API_URL = `${FACILITATOR_URL}/test-payment`;
 
   const handleTestPayment = async () => {
@@ -237,11 +237,8 @@ export default function TestFacilitatorPage() {
             </ul>
             <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
               <p className="text-xs text-yellow-200">
-                ⚠️ <strong>Note:</strong> Make sure the facilitator server is running on port 3000
+                ⚠️ <strong>Note:</strong> Facilitator runs on port 3001 (Next.js uses 3000). Run <code className="bg-black/50 px-1 rounded">yarn facilitator</code> in a separate terminal. For &quot;Get Supported&quot;, Kora RPC must also be running (<code className="bg-black/50 px-1 rounded">yarn kora:start</code>).
               </p>
-              <code className="block mt-2 text-xs bg-black/50 px-2 py-1 rounded">
-                yarn facilitator
-              </code>
             </div>
           </div>
         </div>
