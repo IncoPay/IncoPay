@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram, Connection, Transaction } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
-import { encryptAmount } from "./utils/confidentialTransfer";
+import { encryptAmount, getIncoAssociatedTokenAddress } from "./utils/confidentialTransfer";
 import WalletButton from "../components/WalletButton";
 import Link from "next/link";
 
@@ -28,9 +28,17 @@ export default function TestPage() {
   useEffect(() => {
     if (connected && publicKey) {
       initializeProgram();
-      // Auto-populate source account with wallet address
-      // Note: In production, you'd derive the associated token account
-      setSourceAccount(publicKey.toBase58());
+      const mintStr = process.env.NEXT_PUBLIC_TOKEN_MINT;
+      if (mintStr) {
+        try {
+          const ata = getIncoAssociatedTokenAddress(publicKey, new PublicKey(mintStr));
+          setSourceAccount(ata.toBase58());
+        } catch {
+          setSourceAccount(publicKey.toBase58());
+        }
+      } else {
+        setSourceAccount(publicKey.toBase58());
+      }
     } else {
       setSourceAccount("");
     }
@@ -104,14 +112,19 @@ export default function TestPage() {
       return;
     }
 
-    let sourcePubkey: PublicKey;
-    let destPubkey: PublicKey;
+    const mintStr = process.env.NEXT_PUBLIC_TOKEN_MINT;
+    if (!mintStr) {
+      setStatus("Missing NEXT_PUBLIC_TOKEN_MINT. Set it to your IncoToken mint address (IncoMint).");
+      return;
+    }
 
+    let mint: PublicKey;
+    let recipientWallet: PublicKey;
     try {
-      sourcePubkey = new PublicKey(sourceAccount);
-      destPubkey = new PublicKey(destAccount);
+      mint = new PublicKey(mintStr);
+      recipientWallet = new PublicKey(destAccount);
     } catch (error: any) {
-      setStatus(`Invalid address: ${error.message}`);
+      setStatus(`Invalid address: ${error.message}. Use recipient wallet address.`);
       return;
     }
 
@@ -122,14 +135,17 @@ export default function TestPage() {
       const encrypted = encryptedAmount || await encryptAmount(Number(amount), 9);
       const transferAmount = BigInt(Math.floor(Number(amount) * 1e9));
 
-      // Import utility functions
-      const { 
-        INCO_LIGHTNING_PROGRAM_ID, 
+      const {
+        INCO_LIGHTNING_PROGRAM_ID,
         INCO_TOKEN_PROGRAM_ID,
-        getAllowancePda, 
+        getIncoAssociatedTokenAddress: getATA,
+        getAllowancePda,
         simulateTransferAndGetHandles,
-        hexToBuffer 
+        hexToBuffer,
       } = await import("./utils/confidentialTransfer");
+
+      const sourcePubkey = getATA(publicKey!, mint, INCO_TOKEN_PROGRAM_ID);
+      const destPubkey = getATA(recipientWallet, mint, INCO_TOKEN_PROGRAM_ID);
 
       // Create provider first
       const provider = new anchor.AnchorProvider(
@@ -149,33 +165,30 @@ export default function TestPage() {
       );
       anchor.setProvider(provider);
 
-      // Load the program by fetching IDL (workspace is not available in browser)
-      let program: any = null;
+      // Load the program: use Program.at() (fetches IDL from chain) or fallback to local JSON
+      let program: anchor.Program | null = null;
       const programId: PublicKey = INCO_TOKEN_PROGRAM_ID;
-      
+
       try {
-        // Try to fetch IDL from on-chain program first
-        const idl: anchor.Idl | null = await (anchor.Program as any).fetchIdl(programId, provider);
-        
-        if (idl) {
-          // Create program with IDL from on-chain
-          program = new (anchor.Program as any)(idl, programId, provider);
-        } else {
-          throw new Error("IDL not found on-chain");
-        }
-      } catch (idlError: any) {
-        // Fallback: Try to load IDL from local file
+        // 1) Prefer on-chain IDL via Program.at() (correct Anchor API)
+        program = await anchor.Program.at(programId, provider);
+        setStatus("✓ Loaded program from on-chain IDL. Proceeding with transfer...");
+      } catch {
+        // 2) Fallback: load IDL from public folder (idl must have "address" field)
         try {
-          const idlResponse = await fetch('/idl/inco_token.json');
-          if (idlResponse.ok) {
-            const idl = await idlResponse.json();
-            program = new (anchor.Program as any)(idl, programId, provider);
-            setStatus("✓ Loaded IDL from local file. Proceeding with transfer...");
-          } else {
-            throw new Error("IDL file not found");
-          }
-        } catch (fileError: any) {
-          setStatus(`⚠️ Program IDL not found.\n\nTo enable transfers, you need to:\n\n1. Build and deploy the IncoToken program:\n   cd lightning-rod-solana\n   yarn install\n   anchor build\n   anchor deploy --provider.cluster devnet\n\n2. Upload IDL to program:\n   anchor idl init --filepath target/idl/inco_token.json ${programId.toBase58()} --provider.cluster devnet\n\nOR copy IDL to public folder:\n   cp lightning-rod-solana/target/idl/inco_token.json my-app/public/idl/inco_token.json\n\nSee DEPLOY_INCO_TOKEN.md for detailed instructions.\n\nError: ${idlError.message}`);
+          const idlResponse = await fetch("/idl/inco_token.json");
+          if (!idlResponse.ok) throw new Error("IDL file not found");
+          const idl = await idlResponse.json();
+          if (!idl.address) idl.address = programId.toBase58();
+          program = new anchor.Program(idl, provider);
+          setStatus("✓ Loaded program from local IDL. Proceeding with transfer...");
+        } catch (fileErr: any) {
+          setStatus(
+            `⚠️ Program IDL not found.\n\n` +
+              `1. Upload IDL: anchor idl init --filepath target/idl/inco_token.json ${programId.toBase58()} --provider.cluster devnet\n` +
+              `2. Or copy: cp lightning-rod-solana/target/idl/inco_token.json my-app/public/idl/inco_token.json\n\n` +
+              `Error: ${fileErr?.message ?? "Could not load IDL"}`
+          );
           setLoading(false);
           return;
         }
@@ -210,8 +223,14 @@ export default function TestPage() {
         publicKey
       );
 
-      if (!sourceHandle || !destHandle) {
-        setStatus("❌ Failed to simulate transaction. Please check that:\n- Source account exists and has balance\n- Destination account exists\n- Accounts are valid IncoToken accounts");
+        if (!sourceHandle || !destHandle) {
+        setStatus(
+          "❌ Failed to simulate. Ensure:\n" +
+            "• NEXT_PUBLIC_TOKEN_MINT is an IncoMint address (from IncoToken initialize_mint)\n" +
+            "• Your IncoToken account exists (create via IncoToken create/create_idempotent for your wallet + mint)\n" +
+            "• Recipient’s IncoToken account exists (same mint)\n" +
+            "• Source has balance"
+        );
         setLoading(false);
         return;
       }
@@ -376,11 +395,14 @@ export default function TestPage() {
               </div>
               <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg p-4">
                 <p className="text-sm font-medium text-[var(--text-primary)] font-sans mb-2">
-                  Token Mint Address:
+                  Token Mint (IncoMint) Address:
                 </p>
                 <code className="text-xs text-[var(--text-paragraph)] font-mono break-all">
-                  {process.env.NEXT_PUBLIC_TOKEN_MINT || 'Not deployed yet'}
+                  {process.env.NEXT_PUBLIC_TOKEN_MINT || "Not set (use IncoToken mint)"}
                 </code>
+                <p className="mt-2 text-xs text-[var(--text-paragraph)] font-sans">
+                  For confidential transfers this must be an <strong>IncoMint</strong> from the IncoToken program (initialize_mint), not the SPL mint from deploy-token. Create IncoToken accounts (create/create_idempotent) for source and recipient.
+                </p>
               </div>
             </div>
           </div>
@@ -453,7 +475,7 @@ export default function TestPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[var(--text-primary)] mb-2 font-sans">
-                  Source Account {connected && publicKey && "(auto-filled from wallet)"}
+                  Source (your IncoToken account)
                 </label>
                 <input
                   type="text"
@@ -461,24 +483,24 @@ export default function TestPage() {
                   onChange={(e) => setSourceAccount(e.target.value)}
                   disabled={connected && publicKey ? true : false}
                   className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] font-sans focus:outline-none focus:ring-2 focus:ring-[var(--button-bg)] font-mono text-sm disabled:opacity-60 disabled:cursor-not-allowed"
-                  placeholder={connected && publicKey ? "Wallet address (auto-filled)" : "Enter source token account address or connect wallet"}
+                  placeholder="IncoToken account PDA (derived from wallet + mint)"
                 />
                 {connected && publicKey && (
                   <p className="mt-2 text-xs text-[var(--text-paragraph)] font-sans">
-                    💡 Source account is set from your connected wallet. To use a different account, disconnect and enter manually.
+                    💡 Derived from your wallet + mint. Both source and recipient IncoToken accounts must exist (create via IncoToken program if needed).
                   </p>
                 )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--text-primary)] mb-2 font-sans">
-                  Destination Account (recipient token account)
+                  Recipient wallet address
                 </label>
                 <input
                   type="text"
                   value={destAccount}
                   onChange={(e) => setDestAccount(e.target.value)}
                   className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] font-sans focus:outline-none focus:ring-2 focus:ring-[var(--button-bg)] font-mono text-sm"
-                  placeholder="Enter destination token account address"
+                  placeholder="Recipient wallet (we derive their IncoToken account for this mint)"
                 />
               </div>
             </div>
@@ -489,6 +511,9 @@ export default function TestPage() {
             <h2 className="text-xl sm:text-2xl font-semibold text-[var(--text-primary)] font-serif mb-4">
               Step 3: Execute Transfer
             </h2>
+            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm text-amber-200 font-sans">
+              <strong>Devnet + Phantom:</strong> Phantom may warn &quot;account may fail due to insufficient SOL&quot; even if you have 2+ SOL. This is a known devnet quirk. The transfer only needs ~0.000005 SOL in fees. If you&apos;re on Devnet and have SOL, you can <strong>approve anyway</strong> and it will usually succeed.
+            </div>
             <button
               onClick={handleTransfer}
               disabled={loading || !encryptedAmount || !sourceAccount || !destAccount || !connected}

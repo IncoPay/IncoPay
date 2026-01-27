@@ -13,6 +13,19 @@ export const INCO_LIGHTNING_PROGRAM_ID = new PublicKey("5sjEbPiqgZrYwR31ahR6Uk9w
 // New (from build): 9Cir3JKBcQ1mzasrQNKWMiGVZvYu3dxvfkGeQ6mohWWi
 export const INCO_TOKEN_PROGRAM_ID = new PublicKey("9Cir3JKBcQ1mzasrQNKWMiGVZvYu3dxvfkGeQ6mohWWi");
 
+/** IncoToken associated token account PDA. Matches program seeds: [wallet, program_id, mint]. */
+export function getIncoAssociatedTokenAddress(
+  wallet: PublicKey,
+  mint: PublicKey,
+  programId: PublicKey = INCO_TOKEN_PROGRAM_ID
+): PublicKey {
+  const [addr] = PublicKey.findProgramAddressSync(
+    [wallet.toBuffer(), programId.toBuffer(), mint.toBuffer()],
+    programId
+  );
+  return addr;
+}
+
 export function extractHandleFromAnchor(anchorHandle: any): bigint {
   if (anchorHandle && anchorHandle._bn) {
     return BigInt(anchorHandle._bn.toString(10));
