@@ -2435,11 +2435,11 @@ __metadata:
 
 "@solana/kora@file:../kora/sdks/ts::locator=my-app%40workspace%3A.":
   version: 0.1.1
-  resolution: "@solana/kora@file:../kora/sdks/ts#../kora/sdks/ts::hash=48c64f&locator=my-app%40workspace%3A."
+  resolution: "@solana/kora@file:../kora/sdks/ts#../kora/sdks/ts::hash=588560&locator=my-app%40workspace%3A."
   peerDependencies:
     "@solana-program/token": ^0.9.0
     "@solana/kit": ^5.0.0
-  checksum: 8751fad8aa866f92f4f1979c0e949c44b4e4773021c823d3144e2925dcba442e05747ea5109d4db836764c9024ffcf5305601ce760ff12f3ce609c62d83e0ac5
+  checksum: e1ed656864cb93ab41f6fffcce26dccdd7f1411ffbaf9f6205b7a8ed26add6a58d345698252e7054f4a43e1fc6c4b5a900884a701892157d42db36667312ec16
   languageName: node
   linkType: hard
 
@@ -9793,6 +9793,7 @@ __metadata:
     axios: ^1.8.4
     class-variance-authority: ^0.7.1
     clsx: ^2.1.1
+    define-data-property: ^1.1.4
     dotenv: ^16.4.7
     eslint: ^9
     eslint-config-next: 16.1.1

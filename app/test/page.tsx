@@ -366,12 +366,14 @@ export default function TestPage() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--text-primary)] font-serif">
               Token Deployment & Confidential Transfer
             </h1>
-            <Link 
-              href="/test1"
-              className="px-4 py-2 bg-[#2463EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors text-sm"
-            >
-              Test Facilitator →
-            </Link>
+            <div className="flex gap-2">
+              <Link href="/test2" className="px-4 py-2 bg-[#2463EB] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors text-sm">
+                X402 Demo →
+              </Link>
+              <Link href="/test1" className="px-4 py-2 bg-[#2463EB]/80 text-white rounded-lg hover:bg-[#1d4ed8] transition-colors text-sm">
+                Test Facilitator →
+              </Link>
+            </div>
           </div>
 
           {/* Token Deployment Section */}

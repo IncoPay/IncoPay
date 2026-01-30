@@ -3,29 +3,29 @@
 import CyclingText from "./CyclingText";
 import Image from "next/image";
 import Link from "next/link";
-import Plasma from "@/components/Plasma";
+import LightPillar from "@/components/LightPillar";
 
 export default function Landing() {
   return (
     <div className="min-h-screen bg-black text-[var(--text-primary)] transition-colors relative z-10 overflow-hidden">
-      {/* Plasma Background - Only in main content area */}
-      <div 
-        className="absolute inset-0 -z-10" 
-        style={{ 
-          width: '100%', 
-          height: '100vh',
-          position: 'absolute',
-          top: 0,
-          left: 0
-        }}
+      {/* LightPillar full background */}
+      <div
+        className="absolute inset-0 -z-10 w-full min-h-screen"
+        style={{ width: '100%', height: '100%', minHeight: '100vh' }}
       >
-        <Plasma
-          color="#2463EB"
-          speed={0.6}
-          direction="forward"
-          scale={1.0}
-          opacity={1}
-          mouseInteractive={true}
+        <LightPillar
+          topColor="#2930ff"
+          bottomColor="#9ecdff"
+          intensity={1}
+          rotationSpeed={0.3}
+          glowAmount={0.002}
+          pillarWidth={3}
+          pillarHeight={0.4}
+          noiseIntensity={0.5}
+          pillarRotation={25}
+          interactive={false}
+          mixBlendMode="screen"
+          quality="high"
         />
       </div>
 
