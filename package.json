@@ -19,7 +19,6 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.0",
     "@inco/solana-sdk": "^0.0.2",
-    "@solana/kora": "file:../kora/sdks/ts",
     "@solana/spl-token": "^0.4.8",
     "@solana/wallet-adapter-base": "^0.9.27",
     "@solana/wallet-adapter-react": "^0.15.39",

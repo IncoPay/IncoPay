@@ -73,7 +73,13 @@ Use these in Kora `allowed_programs` (or equivalent config) so the fee-payer can
 - **Node.js** 18+ and **Yarn**
 - **Rust** and **Cargo** (for Kora)
 - **Solana CLI** and **Anchor** (for IncoToken build/deploy)
-- **Kora** repo sibling to `my-app` (e.g. `../kora`) with built SDK at `kora/sdks/ts`
+- **Kora** repo sibling to `my-app` (e.g. `../kora`) with built SDK at `kora/sdks/ts`) — only for running the facilitator locally
+
+---
+
+## Deploying to Vercel (UI only)
+
+The app is set up so **Vercel can build and deploy the UI** without the Kora repo. The `@solana/kora` dependency is not in `package.json` (it used a local `file:../kora/sdks/ts` path that doesn’t exist on Vercel). A type stub in `types/kora.d.ts` lets the build succeed; the facilitator (which uses Kora) is intended to run **separately** (e.g. on another host or locally). For **local full stack** (facilitator + Kora), clone the Kora repo as a sibling, build the SDK (`yarn kora:build-sdk`), and add the dependency back: `yarn add file:../kora/sdks/ts` (or use the [IncoPay-KoraFacilator](https://github.com/ayushsingh82/IncoPay-KoraFacilator) repo and point to its SDK if published).
 
 ---
 
