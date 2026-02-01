@@ -2,6 +2,12 @@
 
 **Private payments on Solana** — X402-style confidential token transfers with message-based authorization and facilitator-paid gas, powered by [Inco Network](https://inco.org).
 
+We built **private X402 on Solana** using **Inco Network**. The stack uses the **Inco Lightning** program for confidential SPL token transfers and **Kora** only as the facilitator service—fee payer and transaction submission—so users get a gasless, one-sign flow.
+
+On the **facilitator** we added full support for ciphertext and the payment lifecycle: **getAmount** returns an encrypted amount (ciphertext) for the transfer; **verify** validates the user’s Ed25519 signature over the payment message (ciphertext, amount, recipient); and **settle** runs in two steps—it first returns an unsigned transaction for the user to sign once, then accepts the signed transaction and forwards it to Kora for fee-payer signature and submission. Ciphertext is read and passed through the whole flow so amounts stay confidential until settlement; Kora is used only for paying fees and sending the transaction, not for generating or verifying ciphertext.
+
+On-chain, the flow uses Ed25519 signature verification and the IncoToken program’s **transfer_with_authorization** so the confidential transfer is tied to the signed message. The result is private, gasless X402-style payments on Solana with Inco Lightning for confidentiality and Kora for the facilitator’s fee-payer role.
+
 ---
 
 ## What We Built
@@ -170,14 +176,37 @@ my-app/
 
 ## Environment
 
-Create `my-app/.env.local` (and optionally `kora/.env` / Kora configs as needed). Example:
+### How to set up `.env`
+
+Use either **`.env`** or **`.env.local`** in the `my-app` folder (Next.js loads both; `.env.local` overrides `.env`). You can:
+
+1. **Copy from an existing file** — If you have `.env.local` from a previous setup, copy it to the repo root as `.env` or `.env.local` and adjust values as needed.
+2. **Create from the template below** — Copy the example block into a new file named `.env` or `.env.local` in `my-app/`, then fill in the placeholders.
+
+**Required for running the stack:**
+
+| Variable | What to put |
+|----------|-------------|
+| **KORA_PRIVATE_KEY** | Base58 or hex private key (or JSON array of bytes) for the Kora fee-payer keypair. Required for `yarn kora:start`. |
+| **NEXT_PUBLIC_TOKEN_MINT** | Your IncoToken mint address (set after deploying IncoToken or use an existing devnet mint). |
+| **NEXT_PUBLIC_PAYMENT_RECEIVER** | Solana wallet address that receives the 1 INCO payment (merchant/receiver). |
+| **NEXT_PUBLIC_FACILITATOR_URL** | Facilitator base URL, e.g. `http://localhost:3001` for local dev. |
+| **FACILITATOR_PORT** | Port the facilitator listens on (e.g. `3001`). |
+| **KORA_RPC_URL** | Kora RPC URL (e.g. `http://localhost:8080/` when running Kora locally). |
+| **KORA_API_KEY** | API key for Kora (e.g. `kora_facilitator_api_key_example` for local). |
+
+**Optional:** `RPC_URL` — Public Solana RPC (e.g. `https://api.devnet.solana.com`); used by facilitator for blockhash if Kora is unavailable.
+
+**Example `.env` or `.env.local`:**
 
 ```env
 # Facilitator
 NEXT_PUBLIC_FACILITATOR_URL=http://localhost:3001
 FACILITATOR_PORT=3001
 
-# Kora (for start-kora.sh)
+# Kora (for start-kora.sh and facilitator)
+KORA_RPC_URL=http://localhost:8080/
+KORA_API_KEY=kora_facilitator_api_key_example
 KORA_PRIVATE_KEY=<base58-or-hex-private-key>
 
 # Solana / IncoToken
