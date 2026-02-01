@@ -227,6 +227,8 @@ See `markdown_files/TEST2_FLOW_AND_ERRORS.md` for code-level notes and common er
 
 - **Run order and commands:** `TERMINAL_STEPS.md`
 - **Flow, fixes, troubleshooting:** `markdown_files/TEST2_FLOW_AND_ERRORS.md`
+- **Video script (landing → Get Started → Pay 1 INCO):** `markdown_files/VIDEO_SCRIPT.md`
+- **What to read (Kora & Inco Lightning):** `markdown_files/READING_KORA_AND_INCO_LIGHTNING.md`
 - **Deploy options:** `lightning-rod-solana/DEPLOY_ALTERNATIVES.md`
 - **Facilitator API:** `app/facilator/README.md`
 

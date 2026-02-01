@@ -313,4 +313,5 @@ if (require.main === module) {
         });
 }
 
-export { deployToken, TokenConfig };
+export { deployToken };
+export type { TokenConfig };
