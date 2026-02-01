@@ -11,8 +11,8 @@
     "deploy-token": "tsx app/facilator/deploy-token.ts",
     "kora:install": "cd ../kora && make install && cd ../my-app",
     "kora:build-sdk": "cd ../kora/sdks/ts && npm install --ignore-scripts && npx tsc && cd ../../../my-app",
-    "deploy-inco-token": "cd lightning-rod-solana && solana program deploy --program-id target/deploy/inco_token-keypair.json target/deploy/inco_token.so --url devnet --max-sign-attempts 1000 && cp target/idl/inco_token.json ../public/idl/inco_token.json && cd ../my-app",
-    "copy-idl": "cd lightning-rod-solana && cp target/idl/inco_token.json ../public/idl/inco_token.json && cd ../my-app",
+    "deploy-inco-token": "cd lightning-rod-solana && solana program deploy --program-id target/deploy/inco_token-keypair.json target/deploy/inco_token.so --url devnet --max-sign-attempts 1000 && cp target/idl/inco_token.json ../public/idl/inco_token.json && cd ..",
+    "copy-idl": "cd lightning-rod-solana && cp target/idl/inco_token.json ../public/idl/inco_token.json && cd ..",
     "setup-inco-token": "tsx scripts/setup-inco-token.ts",
     "kora:start": "./start-kora.sh"
   },

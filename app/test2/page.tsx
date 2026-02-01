@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram, Transaction, VersionedTransaction } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
-import bs58 from "bs58";
 import {
   encryptAmount,
   getIncoAssociatedTokenAddress,
@@ -14,13 +13,13 @@ import {
   getAllowancePda,
   simulateTransferAndGetHandles,
 } from "../test/utils/confidentialTransfer";
+import { encodeBase58 } from "../../lib/base58";
 import WalletButton from "../components/WalletButton";
 import Link from "next/link";
 
 /** Normalize settle response to a Solscan-valid tx signature (base58). If value is base64 serialized tx, extract first signature. */
 function getSolscanTxSignature(value: string): string {
   if (!value) return value;
-  // Already looks like base58 signature (short, no base64 chars)
   if (value.length <= 100 && !value.includes("+") && !value.includes("/") && !value.includes("=")) {
     return value;
   }
@@ -29,9 +28,8 @@ function getSolscanTxSignature(value: string): string {
     if (buf.length < 65) return value;
     const tx = VersionedTransaction.deserialize(new Uint8Array(buf));
     const sig = tx.signatures[0];
-    if (sig?.length === 64) return bs58.encode(sig);
-    // Fallback: first 64 bytes after compact-u16 length (1 byte for 1–2 signers)
-    return bs58.encode(buf.subarray(1, 65));
+    if (sig?.length === 64) return encodeBase58(sig);
+    return encodeBase58(buf.subarray(1, 65));
   } catch {
     return value;
   }
@@ -45,14 +43,14 @@ const DEFAULT_PAYMENT_RECEIVER = "E9cRHNKU5wWVtovCRsSwnL1zvmVsLjiHrtQvRcHx6uyS";
 
 export default function Test2Page() {
   const { connection } = useConnection();
-  const { publicKey, signTransaction, signMessage, connected } = useWallet();
+  const { publicKey, signMessage, signTransaction, connected } = useWallet();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string>("");
   const [apiData, setApiData] = useState<string | null>(null);
   const [txSignature, setTxSignature] = useState<string>("");
 
   const handlePay = async () => {
-    if (!publicKey || !signTransaction || !signMessage) {
+    if (!publicKey || !signMessage) {
       setStatus("Please connect your wallet");
       return;
     }
@@ -117,8 +115,8 @@ export default function Test2Page() {
       const signature = await signMessage(messageBytes);
       const signatureBase64 = typeof signature === "string" ? signature : Buffer.from(signature).toString("base64");
 
-      // 3) Verify with facilitator (signature + encrypted amount)
-      setStatus("Verifying payment with facilitator...");
+      // 3) Verify with facilitator (fast off-chain check; on-chain verification happens in settle tx)
+      setStatus("Verifying signature at facilitator...");
       const verifyRes = await fetch(`${FACILITATOR_URL}/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -141,18 +139,12 @@ export default function Test2Page() {
       if (!verifyData.isValid) {
         throw new Error(verifyData.invalidReason || "Verification failed");
       }
-      setStatus("Verified. Building transfer transaction...");
+      setStatus("Getting handles via simulation (no transaction signing)...");
 
-      // 4) Build transfer tx (same as /test)
+      // 4) Get handles via simulation only (no tx build/sign – facilitator will build and send)
       const provider = new anchor.AnchorProvider(
         connection,
-        {
-          publicKey,
-          signTransaction: signTransaction!,
-          signAllTransactions: async (txs: Transaction[]) => {
-            return Promise.all(txs.map((tx) => signTransaction!(tx)));
-          },
-        } as anchor.Wallet,
+        { publicKey, signTransaction: async (tx) => tx, signAllTransactions: async (txs) => txs },
         { commitment: "confirmed" }
       );
       anchor.setProvider(provider);
@@ -183,81 +175,103 @@ export default function Test2Page() {
         } as any)
         .transaction();
 
-      const { sourceHandle, destHandle } = await simulateTransferAndGetHandles(
+      const simResult = await simulateTransferAndGetHandles(
         txForSim,
         connection,
         sourcePubkey,
         destPubkey,
         publicKey
       );
-      if (!sourceHandle || !destHandle) {
-        throw new Error("Simulation failed. Ensure source/dest IncoToken accounts exist and have balance.");
+      if (!simResult.sourceHandle || !simResult.destHandle) {
+        const hint = simResult.error
+          ? ` ${simResult.error}`
+          : "";
+        throw new Error(
+          `Simulation failed.${hint} Ensure: (1) Your wallet has an IncoToken account for this mint with at least ${DEMO_PRICE} INCO, (2) Payment receiver has an IncoToken account, (3) RPC is reachable (no 403).`
+        );
       }
+      const { sourceHandle, destHandle } = simResult;
 
-      const [sourceAllowancePda] = getAllowancePda(sourceHandle, publicKey);
-      const [destAllowancePda] = getAllowancePda(destHandle, publicKey);
-
-      // Get fee payer from facilitator /supported
-      const supportedRes = await fetch(`${FACILITATOR_URL}/supported`);
-      const supportedData = (await supportedRes.json()) as { kinds?: Array<{ extra?: { feePayer?: string } }> };
-      const feePayerStr = supportedData?.kinds?.[0]?.extra?.feePayer;
-      if (!feePayerStr || feePayerStr.includes("yarn")) {
-        setStatus("Facilitator fee payer not available. Run yarn kora:build-sdk and restart facilitator.");
-        setLoading(false);
-        return;
-      }
-      const feePayer = new PublicKey(feePayerStr);
-
-      const transferTx = await program.methods
-        .transfer(hexToBuffer(ciphertext), 0)
-        .accounts({
-          source: sourcePubkey,
-          destination: destPubkey,
-          authority: publicKey,
-          incoLightningProgram: INCO_LIGHTNING_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-        } as any)
-        .remainingAccounts([
-          { pubkey: sourceAllowancePda, isSigner: false, isWritable: true },
-          { pubkey: publicKey, isSigner: false, isWritable: false },
-          { pubkey: destAllowancePda, isSigner: false, isWritable: true },
-          { pubkey: publicKey, isSigner: false, isWritable: false },
-        ])
-        .transaction();
-
-      const { blockhash } = await connection.getLatestBlockhash();
-      transferTx.recentBlockhash = blockhash;
-      transferTx.feePayer = feePayer;
-
-      setStatus("Sign the transaction in your wallet...");
-      const signedTx = await signTransaction(transferTx);
-      const serialized = signedTx.serialize({
-        requireAllSignatures: false,
-        verifySignatures: false,
-      });
-      const txBase64 = Buffer.from(serialized).toString("base64");
-
-      // 5) Settle (facilitator submits signed tx)
-      setStatus("Settling payment...");
+      // 5) Settle: facilitator returns unsigned tx; you sign the transaction once (required by protocol so facilitator can complete payment on your behalf); then we send it.
+      setStatus("Requesting payment transaction...");
       const settleRes = await fetch(`${FACILITATOR_URL}/settle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           paymentPayload: {
-            payload: { transaction: txBase64 },
+            payload: {
+              authorization: {
+                message: messageStr,
+                signature: signatureBase64,
+                payer: publicKey.toBase58(),
+                ciphertext,
+                mint: mintStr,
+                paymentReceiver: paymentReceiverStr,
+                sourceHandle: sourceHandle.toString(),
+                destHandle: destHandle.toString(),
+              },
+            },
           },
           paymentRequirements: { network: "solana:devnet", price: `$${DEMO_PRICE}` },
         }),
       });
-      const settleData = (await settleRes.json()) as { success?: boolean; transaction?: string; errorReason?: string };
-      if (!settleData.success) {
-        throw new Error(settleData.errorReason || "Settle failed");
-      }
+      const settleData = (await settleRes.json()) as {
+        success?: boolean;
+        transaction?: string;
+        errorReason?: string;
+        requiresPayerSignature?: boolean;
+        unsignedTransaction?: string;
+      };
 
-      const rawTxOrSig = settleData.transaction || "";
-      const solscanSig = getSolscanTxSignature(rawTxOrSig);
-      setTxSignature(solscanSig);
-      setStatus("Payment settled. Revealing API data...");
+      let solscanSig = "";
+      if (settleData.requiresPayerSignature && settleData.unsignedTransaction) {
+        if (!signTransaction) {
+          throw new Error("Wallet does not support signing transactions.");
+        }
+        setStatus("Sign the transaction once so the facilitator can complete the payment on your behalf...");
+        const raw = settleData.unsignedTransaction;
+        const buf = typeof atob !== "undefined" ? Uint8Array.from(atob(raw), (c) => c.charCodeAt(0)) : Buffer.from(raw, "base64");
+        const tx = Transaction.from(buf instanceof Uint8Array ? buf : new Uint8Array(buf));
+        
+        let signedTx;
+        try {
+          signedTx = await signTransaction(tx);
+        } catch (signErr: any) {
+          const errMsg = signErr?.message || String(signErr);
+          if (errMsg.includes("Missing signature") || errMsg.includes("Signature verification failed")) {
+            throw new Error(`Wallet signature error: ${errMsg}. This may indicate the wallet is checking signatures before allowing you to sign. Try refreshing and retrying.`);
+          }
+          throw signErr;
+        }
+        
+        // Must use requireAllSignatures: false because fee payer hasn't signed yet
+        const signedTxBase64 = Buffer.from(signedTx.serialize({ requireAllSignatures: false, verifySignatures: false })).toString("base64");
+
+        setStatus("Submitting signed payment...");
+        const settleRes2 = await fetch(`${FACILITATOR_URL}/settle`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            paymentPayload: { payload: { transaction: signedTxBase64 } },
+            paymentRequirements: { network: "solana:devnet", price: `$${DEMO_PRICE}` },
+          }),
+        });
+        const settleData2 = (await settleRes2.json()) as { success?: boolean; transaction?: string; errorReason?: string };
+        if (!settleData2.success) {
+          const reason = settleData2.errorReason?.trim() || "Settle failed.";
+          throw new Error(reason);
+        }
+        solscanSig = getSolscanTxSignature(settleData2.transaction || "");
+        setTxSignature(solscanSig);
+        setStatus("Payment settled. Revealing API data...");
+      } else if (settleData.success && settleData.transaction) {
+        solscanSig = getSolscanTxSignature(settleData.transaction || "");
+        setTxSignature(solscanSig);
+        setStatus("Payment settled. Revealing API data...");
+      } else {
+        const reason = settleData.errorReason?.trim() || "Settle failed.";
+        throw new Error(reason);
+      }
 
       // 6) Reveal API data (mock for demo) – use normalized signature for Solscan link
       const mockApiData = {
@@ -316,7 +330,7 @@ export default function Test2Page() {
               Unlock this box
             </h2>
             <p className="text-[var(--text-paragraph)] font-sans mb-4">
-              This box requires <strong>1 INCO</strong> confidential token. You sign a message (with encrypted amount), then sign the transfer transaction. The facilitator verifies and settles.
+              This box requires <strong>1 INCO</strong> confidential token. You sign the message first (authorization), then sign the transaction once when prompted so the facilitator can complete the payment on your behalf.
             </p>
             <p className="text-xs text-amber-600 dark:text-amber-400 font-sans mb-4">
               Run the facilitator first: <code className="bg-black/20 px-1 rounded">yarn facilitator</code> (port 3001). Otherwise you’ll get &quot;Failed to fetch&quot;.
@@ -366,11 +380,14 @@ export default function Test2Page() {
             <ol className="list-decimal list-inside space-y-2 text-sm text-[var(--text-paragraph)] font-sans">
               <li>Query server for payment → price: 1 INCO</li>
               <li>Get ciphertext for that amount from facilitator (<code className="bg-black/20 px-1 rounded">/getAmount</code>)</li>
-              <li>Sign message with encrypted amount and send to facilitator</li>
-              <li>Facilitator verifies signature (<code className="bg-black/20 px-1 rounded">/verify</code>)</li>
-              <li>You sign the transfer transaction; facilitator settles (<code className="bg-black/20 px-1 rounded">/settle</code>)</li>
+              <li><strong>Sign message only</strong> (with encrypted amount) – no transaction signing</li>
+              <li>Facilitator verifies your signature (<code className="bg-black/20 px-1 rounded">/verify</code>)</li>
+              <li>Facilitator builds tx: [Ed25519 verify, transfer_with_authorization], signs (fee payer), and settles (<code className="bg-black/20 px-1 rounded">/settle</code>)</li>
               <li>API data revealed</li>
             </ol>
+            <p className="mt-2 text-xs text-[var(--text-paragraph)] font-sans">
+              User only signs a message; the facilitator builds and submits the transaction. Ed25519 verification runs on-chain before the IncoToken transfer.
+            </p>
             <p className="mt-4 text-xs text-[var(--text-paragraph)] font-sans">
               Ensure facilitator is running: <code className="bg-black/20 px-1 rounded">yarn facilitator</code> (port 3001). Payments go to merchant <code className="bg-black/20 px-1 rounded">{DEFAULT_PAYMENT_RECEIVER}</code> unless <code className="bg-black/20 px-1 rounded">NEXT_PUBLIC_PAYMENT_RECEIVER</code> is set.
             </p>

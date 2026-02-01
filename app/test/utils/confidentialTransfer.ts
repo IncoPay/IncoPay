@@ -68,20 +68,32 @@ export function formatBalance(plaintext: string, decimals: number = 9): string {
   return (Number(plaintext) / Math.pow(10, decimals)).toFixed(decimals);
 }
 
+export type SimulateTransferResult = {
+  sourceHandle: bigint | null;
+  destHandle: bigint | null;
+  /** Set when simulation failed (tx err, RPC error, or missing account data). */
+  error?: string;
+};
+
 export async function simulateTransferAndGetHandles(
   tx: Transaction,
   connection: Connection,
   sourcePubkey: PublicKey,
   destPubkey: PublicKey,
   walletPubkey: PublicKey
-): Promise<{ sourceHandle: bigint | null; destHandle: bigint | null }> {
+): Promise<SimulateTransferResult> {
   try {
     const { blockhash } = await connection.getLatestBlockhash();
     tx.recentBlockhash = blockhash;
     tx.feePayer = walletPubkey;
 
     const simulation = await connection.simulateTransaction(tx, undefined, [sourcePubkey, destPubkey]);
-    if (simulation.value.err) return { sourceHandle: null, destHandle: null };
+    if (simulation.value.err) {
+      const errStr = typeof simulation.value.err === "string"
+        ? simulation.value.err
+        : JSON.stringify(simulation.value.err);
+      return { sourceHandle: null, destHandle: null, error: errStr };
+    }
 
     const extractHandle = (accountData: any): bigint | null => {
       if (!accountData?.data) return null;
@@ -94,12 +106,19 @@ export async function simulateTransferAndGetHandles(
       return handle;
     };
 
-    return {
-      sourceHandle: extractHandle(simulation.value.accounts?.[0]),
-      destHandle: extractHandle(simulation.value.accounts?.[1]),
-    };
-  } catch {
-    return { sourceHandle: null, destHandle: null };
+    const sourceHandle = extractHandle(simulation.value.accounts?.[0]);
+    const destHandle = extractHandle(simulation.value.accounts?.[1]);
+    if (sourceHandle == null || destHandle == null) {
+      return {
+        sourceHandle: null,
+        destHandle: null,
+        error: "Could not read balance handles from simulation (source/dest IncoToken accounts may not exist or have wrong format).",
+      };
+    }
+    return { sourceHandle, destHandle };
+  } catch (e: any) {
+    const msg = e?.message || String(e);
+    return { sourceHandle: null, destHandle: null, error: msg };
   }
 }
 

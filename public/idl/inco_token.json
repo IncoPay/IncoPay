@@ -1272,6 +1272,62 @@
       ]
     },
     {
+      "name": "transfer_with_authorization",
+      "docs": [
+        "Transfer using message authorization: tx must have Ed25519 verify as first instruction.",
+        "remaining_accounts: [source_allowance, source_owner, dest_allowance, dest_owner]"
+      ],
+      "discriminator": [
+        241,
+        208,
+        6,
+        43,
+        81,
+        61,
+        213,
+        10
+      ],
+      "accounts": [
+        {
+          "name": "source",
+          "writable": true
+        },
+        {
+          "name": "destination",
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "docs": [
+            "Payer (authorized by Ed25519 at ix 0); must sign tx for inco-lightning CPI"
+          ],
+          "signer": true
+        },
+        {
+          "name": "instructions_sysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "inco_lightning_program",
+          "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "ciphertext",
+          "type": "bytes"
+        },
+        {
+          "name": "input_type",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "unverify_collection",
       "discriminator": [
         250,
@@ -1424,63 +1480,103 @@
   "errors": [
     {
       "code": 6000,
-      "name": "AlreadyInitialized",
-      "msg": "Metadata account is already initialized"
+      "name": "NotRentExempt",
+      "msg": "Lamport balance below rent-exempt threshold"
     },
     {
       "code": 6001,
-      "name": "NotInitialized",
-      "msg": "Metadata account is not initialized"
+      "name": "InsufficientFunds",
+      "msg": "Insufficient funds"
     },
     {
       "code": 6002,
-      "name": "UpdateAuthorityMismatch",
-      "msg": "Update authority mismatch"
+      "name": "InvalidMint",
+      "msg": "Invalid Mint"
     },
     {
       "code": 6003,
-      "name": "DataIsImmutable",
-      "msg": "Data is immutable"
+      "name": "MintMismatch",
+      "msg": "Account not associated with this Mint"
     },
     {
       "code": 6004,
-      "name": "MintMismatch",
-      "msg": "Mint mismatch"
+      "name": "OwnerMismatch",
+      "msg": "Owner does not match"
     },
     {
       "code": 6005,
-      "name": "CreatorNotFound",
-      "msg": "Creator not found"
+      "name": "FixedSupply",
+      "msg": "Fixed supply"
     },
     {
       "code": 6006,
-      "name": "CollectionNotSet",
-      "msg": "Collection not set"
+      "name": "AlreadyInUse",
+      "msg": "Account already in use"
     },
     {
       "code": 6007,
-      "name": "MaxSupplyReached",
-      "msg": "Maximum supply reached"
+      "name": "InvalidNumberOfProvidedSigners",
+      "msg": "Invalid number of provided signers"
     },
     {
       "code": 6008,
-      "name": "NumericalOverflow",
-      "msg": "Numerical overflow"
+      "name": "InvalidNumberOfRequiredSigners",
+      "msg": "Invalid number of required signers"
     },
     {
       "code": 6009,
-      "name": "NameTooLong",
-      "msg": "Name too long (max 32 characters)"
+      "name": "UninitializedState",
+      "msg": "State is uninitialized"
     },
     {
       "code": 6010,
-      "name": "SymbolTooLong",
-      "msg": "Symbol too long (max 10 characters)"
+      "name": "NativeNotSupported",
+      "msg": "Native tokens not supported"
     },
     {
       "code": 6011,
-      "name": "UriTooLong",
-      "msg": "URI too long (max 200 characters)"
+      "name": "NonNativeHasBalance",
+      "msg": "Non-native account has balance"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidInstruction",
+      "msg": "Invalid instruction"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidState",
+      "msg": "Invalid state"
+    },
+    {
+      "code": 6014,
+      "name": "Overflow",
+      "msg": "Overflow"
+    },
+    {
+      "code": 6015,
+      "name": "AuthorityTypeNotSupported",
+      "msg": "Authority type not supported"
+    },
+    {
+      "code": 6016,
+      "name": "MintCannotFreeze",
+      "msg": "Mint cannot freeze"
+    },
+    {
+      "code": 6017,
+      "name": "AccountFrozen",
+      "msg": "Account frozen"
+    },
+    {
+      "code": 6018,
+      "name": "MintDecimalsMismatch",
+      "msg": "Mint decimals mismatch"
+    },
+    {
+      "code": 6019,
+      "name": "NonNativeNotSupported",
+      "msg": "Non-native not supported"
     }
   ],
   "types": [

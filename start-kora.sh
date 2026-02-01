@@ -15,6 +15,10 @@ fi
 # Export the variable
 export KORA_PRIVATE_KEY
 
-# Start Kora
+# Start Kora (prefer locally built release binary so sig_verify fix is used)
 cd ../kora
-kora --config kora.toml --rpc-url https://api.devnet.solana.com rpc start --signers-config signers.toml
+if [ -x "./target/release/kora" ]; then
+  exec ./target/release/kora --config kora.toml --rpc-url https://api.devnet.solana.com rpc start --signers-config signers.toml
+else
+  exec kora --config kora.toml --rpc-url https://api.devnet.solana.com rpc start --signers-config signers.toml
+fi

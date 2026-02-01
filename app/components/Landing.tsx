@@ -97,14 +97,14 @@ export default function Landing() {
               
               {/* Main Headline */}
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold font-serif mb-6 leading-normal text-white drop-shadow-xl">
-                <span className="whitespace-nowrap">Confidential <span className="px-2 bg-[#2463EB] text-white">Payments*</span>.</span>
+                <span className="whitespace-nowrap">Private <span className="px-2 bg-[#2463EB] text-white">Payment</span>.</span>
                 <br /> 
-                Private <span className="px-2 bg-[#2463EB] text-white">Facilator</span>.
+                That Just <span className="px-2 bg-[#2463EB] text-white">Works</span>.
               </h1>
               
               {/* Subtext */}
               <p className="text-lg md:text-xl text-zinc-300 max-w-3xl mx-auto mb-10 leading-relaxed font-sans drop-shadow-md">
-                Empowering smart contracts with confidentiality to unlock use cases and enable widespread web3 adoption.
+                Redefining smart contracts with confidentiality at the core, enabling private payments and real-world everyday use.
               </p>
             </div>
             
