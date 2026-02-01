@@ -97,9 +97,9 @@ export default function Landing() {
               
               {/* Main Headline */}
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold font-serif mb-6 leading-normal text-white drop-shadow-xl">
-                <span className="whitespace-nowrap">Private <span className="px-2 bg-[#2463EB] text-white">Payment</span>.</span>
+                <span className="whitespace-nowrap">Private <span className="relative inline-block">Payment<svg className="absolute left-0 bottom-0 w-full h-2 overflow-visible" viewBox="0 0 100 12" preserveAspectRatio="none"><path d="M 0 10 Q 50 2 100 10" stroke="#2463EB" strokeWidth="2.5" fill="none" strokeLinecap="round"/></svg></span>.</span>
                 <br /> 
-                That Just <span className="px-2 bg-[#2463EB] text-white">Works</span>.
+                That Just <span className="relative inline-block">Works<svg className="absolute left-0 bottom-0 w-full h-2 overflow-visible" viewBox="0 0 100 12" preserveAspectRatio="none"><path d="M 0 10 Q 50 2 100 10" stroke="#2463EB" strokeWidth="2.5" fill="none" strokeLinecap="round"/></svg></span>.
               </h1>
               
               {/* Subtext */}
@@ -111,14 +111,17 @@ export default function Landing() {
             {/* Get Started and Docs Buttons - Below the paragraph */}
             <div className="mt-8 sm:mt-10 flex items-center justify-center gap-4 sm:gap-6">
               <Link href="/started">
-                <button className="px-8 py-3 bg-[var(--button-bg)] text-[var(--button-text)] rounded-sm font-medium text-lg hover:opacity-90 transition-all duration-200 border border-transparent relative group overflow-hidden">
+                <button className="min-w-[140px] sm:min-w-[160px] px-8 py-3 bg-[var(--button-bg)] text-[var(--button-text)] rounded-sm font-medium text-lg hover:opacity-90 transition-all duration-200 border border-transparent relative group overflow-hidden">
                   <span className="relative z-10">Get Started</span>
                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                 </button>
               </Link>
               <Link href="/docs">
-                <button className="px-8 py-3 bg-transparent text-white border border-[#2463EB] rounded-sm font-medium text-lg hover:bg-[#2463EB]/10 transition-all duration-200 relative group">
+                <button className="min-w-[140px] sm:min-w-[160px] px-8 py-3 bg-transparent text-white border border-[#2463EB] rounded-sm font-medium text-lg hover:bg-[#2463EB]/10 transition-all duration-200 relative group flex flex-col items-center justify-center gap-0.5">
                   <span className="relative z-10">Docs</span>
+                  <span className="relative z-10 text-[10px] sm:text-xs font-medium uppercase tracking-wider text-[#2463EB]">
+                    Coming soon
+                  </span>
                   {/* Corner accents for Docs button */}
                   <div className="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-[#2463EB]"></div>
                   <div className="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-[#2463EB]"></div>
