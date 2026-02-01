@@ -27,6 +27,45 @@
 | Programs    | Anchor (IncoToken on Solana devnet), Inco Lightning (external) |
 | Fee payer   | Kora (Rust; local or deployed) |
 
+**Kora & Facilitator (IncoPay fork):** [IncoPay-KoraFacilator](https://github.com/ayushsingh82/IncoPay-KoraFacilator)
+
+### KoraFacilator
+
+- **Repo:** [IncoPay-KoraFacilator](https://github.com/ayushsingh82/IncoPay-KoraFacilator)
+
+**Changes made for IncoPay (Kora / Facilitator / IncoToken / Frontend):**
+
+- **Kora — allowed programs:** Added support so fee-payer transactions can include:
+  - `Ed25519SigVerify111111111111111111111111111` — Ed25519 sig verify (on-chain before transfer)
+  - `ComputeBudget111111111111111111111111111111` — Compute Budget Program
+  - `9Cir3JKBcQ1mzasrQNKWMiGVZvYu3dxvfkGeQ6mohWWi` — IncoToken (confidential SPL)
+  - `5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj` — Inco Lightning (CPI from IncoToken)
+- **Kora — partially signed tx:** Force `sig_verify = false` when resolving so Kora does not reject the tx before adding the fee-payer signature.
+- **Facilitator:** Two-step settle — return unsigned tx for user to sign, then accept signed tx and forward to Kora.
+- **IncoToken program:** Use relative instruction index (`current_ix_index - 1`) for Ed25519 verification so it works when Kora prepends compute-budget instructions; inco-lightning CPIs temporarily skipped for flow testing.
+- **Inco Lightning program:** No changes were made to the Inco Lightning program itself. It is used as an external dependency (crate `inco-lightning` 0.1.4 with CPI feature) and as the on-chain program at `5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj`. IncoToken invokes it via CPI for confidential ops (e.g. `e_sub`, `e_add`, `e_ge`); in `transfer_with_authorization` those CPIs are temporarily skipped so the signing/submission flow can be tested without the CPI signer issue.
+- **Frontend:** Serialize partially signed tx with `requireAllSignatures: false` and `verifySignatures: false` before sending to facilitator.
+
+---
+
+## On-chain program IDs (devnet)
+
+Inco cSPL token–related programs (use in Kora `allowed_programs` / config):
+
+```
+"ComputeBudget111111111111111111111111111111",   # Compute Budget Program
+"9Cir3JKBcQ1mzasrQNKWMiGVZvYu3dxvfkGeQ6mohWWi", # IncoToken (confidential SPL)
+"5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj", # Inco Lightning (CPI from IncoToken)
+```
+
+| Program | Address | Role |
+|--------|---------|------|
+| Compute Budget | `ComputeBudget111111111111111111111111111111` | Compute budget (Kora adds instructions) |
+| IncoToken (confidential SPL) | `9Cir3JKBcQ1mzasrQNKWMiGVZvYu3dxvfkGeQ6mohWWi` | Confidential token transfer |
+| Inco Lightning | `5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj` | CPI from IncoToken (FHE ops) |
+
+Use these in Kora `allowed_programs` (or equivalent config) so the fee-payer can sign transactions that call them.
+
 ---
 
 ## Prerequisites
