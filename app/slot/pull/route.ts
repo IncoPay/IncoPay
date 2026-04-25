@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const FACILITATOR_URL = "https://inco-facilitator-production.up.railway.app";
-const RECIPIENT = "5ojKGwu7L3bXXMdEJSQVSnq3heN8pBx1Cfa5TkAnzxZo";
+const RECIPIENT = "55LEmvuVgujxEvbrYBiDXBZmMxu3dMofVvT6uCq4q2xK";
 const MINT = "7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB";
 const NETWORK = "solana:devnet";
 const PER_PULL_BASE_UNITS = "100000"; // 0.10 USDC @ 6 decimals
