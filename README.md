@@ -8,6 +8,7 @@
 
 Without sessions, every billable API call is a separate wallet popup and a separate signature. Ten chat messages = ten "Approve" prompts. That's fine for a one-shot DEX trade, ruinous for any product that resembles a normal internet app — pay-per-token AI inference, per-request data feeds, in-game microtransactions, streaming.
 
+
 Sessions fix this with a single primitive: the user authorizes **once** and the facilitator streams unbounded micropayments inside that authorization until either the cap drains or the expiry passes.
 
 ## How sessions work on Solana
