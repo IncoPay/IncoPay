@@ -14,17 +14,30 @@
     "deploy-inco-token": "cd lightning-rod-solana && solana program deploy --program-id target/deploy/inco_token-keypair.json target/deploy/inco_token.so --url devnet --max-sign-attempts 1000 && cp target/idl/inco_token.json ../public/idl/inco_token.json && cd ..",
     "copy-idl": "cd lightning-rod-solana && cp target/idl/inco_token.json ../public/idl/inco_token.json && cd ..",
     "setup-inco-token": "tsx scripts/setup-inco-token.ts",
-    "kora:start": "./start-kora.sh"
+    "kora:start": "./start-kora.sh",
+    "deploy-mint": "tsx scripts/deploy.ts",
+    "airdrop": "tsx scripts/airdrop.ts",
+    "balances": "tsx scripts/balances.ts",
+    "inspect-account": "tsx scripts/inspect.ts",
+    "test-approve": "tsx scripts/test-approve.ts",
+    "test-transfer": "tsx scripts/test-transfer.ts",
+    "sessions-facilitator": "cd ../inco-facilitator && npm run dev"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.0",
     "@inco/solana-sdk": "^0.0.2",
+    "@privy-io/react-auth": "^3.22.2",
+    "@solana-program/memo": "^0.11.0",
+    "@solana-program/system": "^0.12.0",
+    "@solana-program/token": "^0.13.0",
+    "@solana/kit": "^6.8.0",
     "@solana/spl-token": "^0.4.8",
     "@solana/wallet-adapter-base": "^0.9.27",
     "@solana/wallet-adapter-react": "^0.15.39",
     "@solana/wallet-adapter-react-ui": "^0.9.39",
     "@solana/wallet-adapter-wallets": "^0.19.37",
     "@solana/web3.js": "^1.98.4",
+    "@swc/helpers": "^0.5.21",
     "@x402/core": "^2.0.0",
     "@x402/svm": "^2.0.0",
     "axios": "^1.8.4",
@@ -33,13 +46,16 @@
     "clsx": "^2.1.1",
     "define-data-property": "^1.1.4",
     "dotenv": "^16.4.7",
+    "eventemitter3": "^5.0.4",
     "express": "^4.21.2",
     "lucide-react": "^0.563.0",
     "motion": "^12.25.0",
     "next": "16.1.1",
     "ogl": "^1.0.11",
+    "qrcode": "^1.5.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "solana-x402-sessions": "^1.0.0",
     "tailwind-merge": "^3.4.0",
     "three": "^0.167.1",
     "tweetnacl": "^1.0.3"
@@ -58,9 +74,5 @@
     "tw-animate-css": "^1.4.0",
     "typescript": "5.9.3"
   },
-  "packageManager": "yarn@3.2.3+sha512.f26f951f67de0c6a33ee381e5ff364709c87e70eb5e65c694e4facde3512f1fa80b8679e6ba31ce7d340fbb46f08dd683af9457e240f25a204be7427940d767e",
-  "resolutions": {
-    "@solana/errors": "^2.0.0",
-    "@solana/codecs-core": "^2.0.0"
-  }
+  "packageManager": "yarn@3.2.3+sha512.f26f951f67de0c6a33ee381e5ff364709c87e70eb5e65c694e4facde3512f1fa80b8679e6ba31ce7d340fbb46f08dd683af9457e240f25a204be7427940d767e"
 }

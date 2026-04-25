@@ -34,10 +34,11 @@ function getSolscanTxSignature(value: string): string {
   }
 }
 
-const FACILITATOR_URL = process.env.NEXT_PUBLIC_FACILITATOR_URL || "http://localhost:3001";
+const FACILITATOR_URL = process.env.NEXT_PUBLIC_FACILITATOR_URL || "http://localhost:4021";
 const DEMO_PRICE = 1;
-const DECIMALS = 9;
-const DEFAULT_PAYMENT_RECEIVER = "E9cRHNKU5wWVtovCRsSwnL1zvmVsLjiHrtQvRcHx6uyS";
+const DECIMALS = 6; // Our Inco-USDC mint is 6 decimals (matches Circle USDC convention)
+// Merchant for the demo. Must have an IncoAccount on TOKEN_MINT.
+const DEFAULT_PAYMENT_RECEIVER = "55LEmvuVgujxEvbrYBiDXBZmMxu3dMofVvT6uCq4q2xK";
 
 const COLORS = {
   BACKGROUND: "#0A0A0A",
@@ -139,8 +140,8 @@ export default function Started() {
     setApiData(null);
     setTxSignature("");
     try {
-      setStatus(`Price: ${DEMO_PRICE} INCO. Fetching ciphertext...`);
-      const getAmountRes = await fetch(`${FACILITATOR_URL}/getAmount`, {
+      setStatus(`Price: ${DEMO_PRICE} USDC. Fetching ciphertext...`);
+      const getAmountRes = await fetch(`${FACILITATOR_URL}/pay/getAmount`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: DEMO_PRICE, decimals: DECIMALS }),
@@ -164,7 +165,7 @@ export default function Started() {
       const signature = await signMessage(messageBytes);
       const signatureBase64 = typeof signature === "string" ? signature : Buffer.from(signature).toString("base64");
       setStatus("Verifying signature...");
-      const verifyRes = await fetch(`${FACILITATOR_URL}/verify`, {
+      const verifyRes = await fetch(`${FACILITATOR_URL}/pay/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -216,12 +217,12 @@ export default function Started() {
       const simResult = await simulateTransferAndGetHandles(txForSim, connection, sourcePubkey, destPubkey, publicKey);
       if (!simResult.sourceHandle || !simResult.destHandle) {
         throw new Error(
-          `Simulation failed.${simResult.error || ""} Ensure: IncoToken accounts exist and source has ≥ ${DEMO_PRICE} INCO.`
+          `Simulation failed.${simResult.error || ""} Ensure: IncoToken accounts exist and source has ≥ ${DEMO_PRICE} USDC.`
         );
       }
       const { sourceHandle, destHandle } = simResult;
       setStatus("Requesting payment transaction...");
-      const settleRes = await fetch(`${FACILITATOR_URL}/settle`, {
+      const settleRes = await fetch(`${FACILITATOR_URL}/pay/settle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -266,7 +267,7 @@ export default function Started() {
           signedTx.serialize({ requireAllSignatures: false, verifySignatures: false })
         ).toString("base64");
         setStatus("Submitting signed payment...");
-        const settleRes2 = await fetch(`${FACILITATOR_URL}/settle`, {
+        const settleRes2 = await fetch(`${FACILITATOR_URL}/pay/settle`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -288,7 +289,7 @@ export default function Started() {
       }
       const mockApiData = {
         unlocked: true,
-        message: "Payment verified. You paid 1 INCO token (confidential).",
+        message: "Payment verified. You paid 1 USDC token (confidential).",
         txSignature: solscanSig,
         timestamp: new Date().toISOString(),
       };
@@ -324,7 +325,36 @@ export default function Started() {
                 IncoPay
               </Link>
             </div>
-            <WalletButton />
+            <div className="flex items-center gap-3">
+              <nav className="flex items-center gap-2 sm:gap-3 text-sm">
+                <Link
+                  href="/started"
+                  className="px-3 sm:px-4 py-2 rounded-lg text-white font-medium bg-white/5 border border-white/10"
+                >
+                  Get Started
+                </Link>
+                <Link
+                  href="/sessions"
+                  className="px-4 sm:px-5 py-2 rounded-lg bg-[#2463EB] text-white font-medium hover:bg-[#1d4ed8] transition-colors inline-flex items-center gap-2 shadow-lg shadow-[#2463EB]/30"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  Sessions
+                </Link>
+                <Link
+                  href="/slot"
+                  className="px-4 sm:px-5 py-2 rounded-lg bg-[#2463EB] text-white font-medium hover:bg-[#1d4ed8] transition-colors inline-flex items-center gap-2 shadow-lg shadow-[#2463EB]/30"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    <circle cx="12" cy="12" r="2" />
+                  </svg>
+                  Slot
+                </Link>
+              </nav>
+              <WalletButton />
+            </div>
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center space-y-6">
@@ -356,7 +386,7 @@ export default function Started() {
                   disabled={loading || !connected}
                   className="swap-button-style w-full py-3 px-6 text-xl font-bold text-white text-center relative rounded-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Processing..." : "Pay 1 INCO"}
+                  {loading ? "Processing..." : "Pay 1 USDC"}
                 </button>
                 {status && (
                   <p className="text-sm font-sans whitespace-pre-wrap" style={{ color: COLORS.TEXT_COLOR_DIM }}>
@@ -437,7 +467,7 @@ export default function Started() {
           >
             <h3 className="text-xl font-semibold text-[var(--text-primary)] font-serif mb-4">How it works</h3>
             <ol className="list-decimal list-inside space-y-2 text-sm text-[var(--text-paragraph)] font-sans mb-4">
-              <li>Connect wallet and click Pay 1 INCO</li>
+              <li>Connect wallet and click Pay 1 USDC</li>
               <li>Get ciphertext for the amount from facilitator (<code className="bg-black/20 px-1 rounded">/getAmount</code>)</li>
               <li>Sign the payment message (authorization with encrypted amount)</li>
               <li>Facilitator verifies your signature (<code className="bg-black/20 px-1 rounded">/verify</code>)</li>

@@ -195,3 +195,112 @@ h1, h2, h3, h4, h5, h6 {
     @apply bg-background text-foreground;
   }
 }
+
+/* --- /sessions x402 chat demo (scoped) ------------------------------- */
+.sessions-demo {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 32px 20px;
+  color: #e5e5ea;
+  font-family: -apple-system, system-ui, sans-serif;
+}
+.sessions-demo h1 { font-size: 28px; margin-bottom: 8px; color: #fff; }
+.sessions-demo h2 { font-size: 16px; font-weight: 500; color: #9ca3af; margin-bottom: 24px; }
+.sessions-demo .card {
+  background: #14141c;
+  border: 1px solid #222230;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.sessions-demo .card .label { font-size: 12px; color: #7c7c8a; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+.sessions-demo .card .value { font-family: ui-monospace, monospace; font-size: 13px; word-break: break-all; }
+.sessions-demo button {
+  background: #2463EB;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.sessions-demo button:disabled { opacity: 0.4; cursor: not-allowed; }
+.sessions-demo input, .sessions-demo textarea {
+  background: #14141c;
+  border: 1px solid #222230;
+  color: #e5e5ea;
+  padding: 10px 12px;
+  border-radius: 8px;
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+}
+.sessions-demo .chat { display: flex; flex-direction: column; gap: 12px; max-height: 320px; overflow-y: auto; }
+.sessions-demo .msg { padding: 10px 14px; border-radius: 10px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+.sessions-demo .msg.user { align-self: flex-end; background: #2463EB; }
+.sessions-demo .msg.bot  { align-self: flex-start; background: #1f1f2a; }
+.sessions-demo .msg.err  { align-self: flex-start; background: #3a1b1b; color: #fecaca; }
+.sessions-demo .row { display: flex; gap: 8px; align-items: center; }
+.sessions-demo .stat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #222230; }
+.sessions-demo .stat:last-child { border-bottom: none; }
+
+/* --- Global wallet-adapter polish (applies to /, /started, /sessions) --- */
+.wallet-adapter-modal { z-index: 1000 !important; }
+.wallet-adapter-modal-overlay {
+  background: rgba(0,0,0,0.7) !important;
+  backdrop-filter: blur(12px) !important;
+}
+.wallet-adapter-modal-wrapper {
+  background: linear-gradient(180deg, #0d0d18 0%, #08080f 100%) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+  padding: 28px 24px 20px !important;
+  max-width: 420px !important;
+}
+.wallet-adapter-modal-button-close {
+  background: rgba(255,255,255,0.05) !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 10px !important;
+  top: 18px !important;
+  right: 18px !important;
+}
+.wallet-adapter-modal-button-close:hover { background: rgba(255,255,255,0.1) !important; }
+.wallet-adapter-modal-button-close svg { fill: rgba(255,255,255,0.6) !important; }
+.wallet-adapter-modal-title {
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 18px !important;
+  margin: 0 0 18px 0 !important;
+  padding: 0 !important;
+}
+.wallet-adapter-modal-list { margin: 0 !important; gap: 6px !important; display: flex !important; flex-direction: column !important; }
+.wallet-adapter-modal-list li { padding: 0 !important; margin: 0 !important; }
+/* Items inside the modal — but NOT the trigger pill (which we leave at the lib's default so /started and /sessions match) */
+.wallet-adapter-modal-list .wallet-adapter-button {
+  background: rgba(255,255,255,0.03) !important;
+  color: #e5e5ea !important;
+  font-family: inherit !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+  width: 100% !important;
+  height: auto !important;
+}
+.wallet-adapter-modal-list .wallet-adapter-button:not([disabled]):hover {
+  background: rgba(36, 99, 235, 0.08) !important;
+  border-color: rgba(36, 99, 235, 0.4) !important;
+}
+.wallet-adapter-button-end-icon, .wallet-adapter-button-start-icon {
+  width: 28px !important;
+  height: 28px !important;
+}
+.wallet-adapter-modal-list-more {
+  color: rgba(36, 99, 235, 0.9) !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  margin-top: 8px !important;
+}

@@ -1,12 +1,32 @@
 # IncoPay
 
-**Private payments on Solana** — X402-style confidential token transfers with message-based authorization and facilitator-paid gas, powered by [Inco Network](https://inco.org).
+**Private, session-based x402 payments on Solana** — sign once, settle many. Confidential token transfers with facilitator-paid gas, powered by [Inco Network](https://inco.org) and the Inco Lightning program.
 
-We built **private X402 on Solana** using **Inco Network**. The stack uses the **Inco Lightning** program for confidential SPL token transfers and **Kora** only as the facilitator service—fee payer and transaction submission—so users get a gasless, one-sign flow.
+**SDK on npm:** [`solana-x402-sessions`](https://www.npmjs.com/package/solana-x402-sessions) (v1.0.0) · **Live facilitator (devnet):** [`inco-facilitator-production.up.railway.app`](https://inco-facilitator-production.up.railway.app)
 
-On the **facilitator** we added full support for ciphertext and the payment lifecycle: **getAmount** returns an encrypted amount (ciphertext) for the transfer; **verify** validates the user’s Ed25519 signature over the payment message (ciphertext, amount, recipient); and **settle** runs in two steps—it first returns an unsigned transaction for the user to sign once, then accepts the signed transaction and forwards it to Kora for fee-payer signature and submission. Ciphertext is read and passed through the whole flow so amounts stay confidential until settlement; Kora is used only for paying fees and sending the transaction, not for generating or verifying ciphertext.
+## Why sessions exist
 
-On-chain, the flow uses Ed25519 signature verification and the IncoToken program’s **transfer_with_authorization** so the confidential transfer is tied to the signed message. The result is private, gasless X402-style payments on Solana with Inco Lightning for confidentiality and Kora for the facilitator’s fee-payer role.
+Without sessions, every billable API call is a separate wallet popup and a separate signature. Ten chat messages = ten "Approve" prompts. That's fine for a one-shot DEX trade, ruinous for any product that resembles a normal internet app — pay-per-token AI inference, per-request data feeds, in-game microtransactions, streaming.
+
+Sessions fix this with a single primitive: the user authorizes **once** and the facilitator streams unbounded micropayments inside that authorization until either the cap drains or the expiry passes.
+
+## How sessions work on Solana
+
+1. **One on-chain `approve`** — user signs a single IncoToken `approve` allowance to the facilitator. The cap is encrypted (Euint128 ciphertext) so the amount is private end-to-end.
+2. **One Ed25519 auth message** — user signs a canonical JSON intent `{user, spender, asset, recipient, cap, expirationUnix, network, nonce}`. Off-chain proof of intent.
+3. **Per-call settlements** — the facilitator calls IncoToken's `transfer_with_authorization` (the encrypted ciphertext routes through Inco Lightning's confidential arithmetic). The facilitator pays the SOL fee as fee-payer; the user is offline and never sees a wallet popup.
+
+## What you get
+
+- **Gasless for the user** — the facilitator (or Kora as paymaster) signs and pays every fee.
+- **Confidential amounts on-chain** — every amount is a `Euint128` ciphertext handle into Inco Lightning's covalidator network. Observers see handles, not values.
+- **Sub-cent micropayments** — a 0.0001 USDC API call is just a sqlite debit + one Solana tx, fully hidden.
+- **No extra wallet popups after authorize** — one signature for the whole session.
+
+## Trust model
+
+- **On-chain enforced** by IncoToken: total cap and expiry. The `approve` allowance PDA is the source of truth. The facilitator physically cannot debit beyond `delegated_amount`, and Inco Lightning's `e_ge` check inside `transfer_with_authorization` enforces it on every call.
+- **Off-chain enforced** by the facilitator: per-call amount, recipient binding, session bookkeeping. Atomic sqlite debit + refund-on-failure means the in-flight cap is consistent across crashes.
 
 ---
 
