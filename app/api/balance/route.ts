@@ -1,20 +1,24 @@
 /**
- * Read the encrypted balance handle for a user's IncoAccount on the configured
- * TOKEN_MINT. Returns the encrypted handle (NOT plaintext). Decryption happens
- * client-side via the user's signMessage (attested-decrypt).
+ * Read the encrypted balance handle for a user's IncoAccount.
+ * Returns the encrypted handle (NOT plaintext). Decryption happens client-side
+ * via the user's signMessage (attested-decrypt).
  *
  * GET ?user=<base58 pubkey>
- * Returns: { exists, ata, handleHex, mint } | { error }
  */
 import { NextRequest, NextResponse } from "next/server";
 import { Connection, PublicKey } from "@solana/web3.js";
-import * as anchor from "@coral-xyz/anchor";
-import {
-  INCO_TOKEN_PROGRAM_ID,
-  loadKeypair,
-  loadIncoTokenIdl,
-  getIncoAta,
-} from "../../../scripts/common";
+
+const MINT_ADDRESS = "7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB";
+const RPC_URL = "https://api.devnet.solana.com";
+const INCO_TOKEN_PROGRAM_ID = new PublicKey("9Cir3JKBcQ1mzasrQNKWMiGVZvYu3dxvfkGeQ6mohWWi");
+
+function getIncoAta(wallet: PublicKey, mint: PublicKey): PublicKey {
+  const [addr] = PublicKey.findProgramAddressSync(
+    [wallet.toBuffer(), INCO_TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    INCO_TOKEN_PROGRAM_ID,
+  );
+  return addr;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -29,9 +33,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "invalid pubkey" }, { status: 400 });
     }
 
-    const mint = new PublicKey("7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB");
-
-    const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+    const mint = new PublicKey(MINT_ADDRESS);
+    const connection = new Connection(RPC_URL, "confirmed");
 
     const ata = getIncoAta(userPubkey, mint);
     const info = await connection.getAccountInfo(ata);
@@ -44,28 +47,10 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const idl = loadIncoTokenIdl();
-    const dummy = loadKeypair(".keys/issuer.json");
-    const wallet = {
-      publicKey: dummy.publicKey,
-      signTransaction: async (tx: any) => tx,
-      signAllTransactions: async (txs: any[]) => txs,
-    };
-    const provider = new anchor.AnchorProvider(connection, wallet as any, { commitment: "confirmed" });
-    const program = new anchor.Program(idl, provider);
-
-    let handleHex: string | null = null;
-    try {
-      const acc: any = await (program.account as any).incoAccount.fetch(ata);
-      const h = BigInt(acc.amount[0].toString());
-      handleHex = h.toString(16);
-    } catch (e) {
-      // account exists but might be uninitialized format — fall back to raw bytes parse
-      const buf = info.data;
-      let h = 0n;
-      for (let i = 15; i >= 0; i--) h = h * 256n + BigInt(buf[72 + i]);
-      handleHex = h.toString(16);
-    }
+    // Bytes 72-87 are the 16-byte little-endian encrypted amount handle.
+    let h = 0n;
+    for (let i = 15; i >= 0; i--) h = h * 256n + BigInt(info.data[72 + i]);
+    const handleHex = h.toString(16);
 
     return NextResponse.json({
       exists: true,

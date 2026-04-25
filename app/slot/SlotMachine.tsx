@@ -15,6 +15,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { Transaction } from "@solana/web3.js";
 import {
   createSession,
+  wrapFetch,
   type SessionHandle,
   type ClientSvmSigner,
   type Network,
@@ -29,6 +30,51 @@ const NETWORK: Network = "solana:devnet";
 const PER_PULL_USDC = 0.1;
 const PER_PULL_BASE_UNITS = 100_000n;
 const DECIMALS = 6;
+
+const LS_KEY = "inco-x402-slot-session:v1";
+
+interface PersistedSession {
+  sessionId: string;
+  user: string;
+  spender: string;
+  asset: string;
+  recipient: string;
+  cap: string;
+  expirationUnix: number;
+  network: Network;
+  facilitatorUrl: string;
+}
+
+function loadStored(walletPubkey: string): PersistedSession | null {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return null;
+    const parsed: PersistedSession = JSON.parse(raw);
+    if (parsed.user !== walletPubkey) return null;
+    if (parsed.expirationUnix * 1000 < Date.now()) {
+      localStorage.removeItem(LS_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function storeSession(s: SessionHandle) {
+  const copy: PersistedSession = {
+    sessionId: s.sessionId,
+    user: s.user,
+    spender: s.spender,
+    asset: s.asset,
+    recipient: s.recipient,
+    cap: s.cap,
+    expirationUnix: s.expirationUnix,
+    network: s.network,
+    facilitatorUrl: s.facilitatorUrl,
+  };
+  localStorage.setItem(LS_KEY, JSON.stringify(copy));
+}
 
 type PullResult = {
   reels: [string, string, string];
@@ -128,6 +174,7 @@ export function SlotMachine() {
         decimals: DECIMALS,
       });
       setSession(s);
+      storeSession(s);
       setSpent(0);
       setPulls(0);
       setWins(0);
@@ -212,7 +259,33 @@ export function SlotMachine() {
     setReels(PLACEHOLDER_REELS);
     setLastResult(null);
     setErrorMsg(null);
+    if (typeof localStorage !== "undefined") localStorage.removeItem(LS_KEY);
   }
+
+  useEffect(() => {
+    if (!walletAddress) return;
+    const stored = loadStored(walletAddress);
+    if (!stored) return;
+    (async () => {
+      try {
+        const r = await fetch(`${stored.facilitatorUrl}/sessions/${stored.sessionId}`);
+        if (!r.ok) {
+          localStorage.removeItem(LS_KEY);
+          return;
+        }
+        const row = await r.json();
+        const handle: SessionHandle = {
+          ...stored,
+          fetch: wrapFetch(stored.sessionId, stored.facilitatorUrl),
+        };
+        setSession(handle);
+        const spentBaseUnits = BigInt(row.spent ?? "0");
+        setSpent(baseUnitsToUsdc(spentBaseUnits));
+      } catch {
+        // ignore
+      }
+    })();
+  }, [walletAddress]);
 
   const winRate = pulls > 0 ? ((wins / pulls) * 100).toFixed(0) : "0";
   const sessionExhausted = !!session && remaining < PER_PULL_USDC;

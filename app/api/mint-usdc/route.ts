@@ -1,24 +1,80 @@
 /**
  * Devnet "Mint USDC" faucet — credits the connected user's IncoAccount with
- * encrypted USDC. Uses the issuer keypair stored in .keys/issuer.json (server-side
- * only). Idempotently creates the user's IncoAccount if missing.
+ * encrypted USDC.
  *
- * POST body: { user: string (base58 pubkey), amount?: number (UI units, default 100) }
- * Returns:   { success: true, sig, ata, amountBaseUnits } | { error }
+ * On Vercel, the issuer keypair is loaded from env var ISSUER_SECRET_KEY
+ * (JSON array of 64 numbers). Locally, falls back to .keys/issuer.json.
+ *
+ * POST body: { user: string (base58 pubkey), amount?: number }
  */
 import { NextRequest, NextResponse } from "next/server";
-import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import {
-  INCO_LIGHTNING_PROGRAM_ID,
-  INCO_TOKEN_PROGRAM_ID,
-  loadKeypair,
-  makeProvider,
-  getIncoAta,
-  getAllowancePda,
-  extractAmountHandle,
-} from "../../../scripts/common";
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+} from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+import incoTokenIdl from "../../../public/idl/inco_token.json";
 
 const TOKEN_DECIMALS = 6;
+const RPC_URL = "https://api.devnet.solana.com";
+const MINT_ADDRESS = "7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB";
+const INCO_TOKEN_PROGRAM_ID = new PublicKey("9Cir3JKBcQ1mzasrQNKWMiGVZvYu3dxvfkGeQ6mohWWi");
+const INCO_LIGHTNING_PROGRAM_ID = new PublicKey("5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj");
+
+function loadIssuerKeypair(): Keypair {
+  const envSecret = process.env.ISSUER_SECRET_KEY;
+  if (envSecret) {
+    const arr = JSON.parse(envSecret) as number[];
+    return Keypair.fromSecretKey(Uint8Array.from(arr));
+  }
+  // Local dev fallback — only works when filesystem access is available.
+  const fs = require("fs") as typeof import("fs");
+  const path = require("path") as typeof import("path");
+  const candidates = [
+    path.resolve(process.cwd(), ".keys/issuer.json"),
+    path.resolve(process.cwd(), "../.keys/issuer.json"),
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      const secret = JSON.parse(fs.readFileSync(p, "utf-8")) as number[];
+      return Keypair.fromSecretKey(Uint8Array.from(secret));
+    }
+  }
+  throw new Error("issuer keypair not configured: set ISSUER_SECRET_KEY env var");
+}
+
+function getIncoAta(wallet: PublicKey, mint: PublicKey): PublicKey {
+  const [addr] = PublicKey.findProgramAddressSync(
+    [wallet.toBuffer(), INCO_TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    INCO_TOKEN_PROGRAM_ID,
+  );
+  return addr;
+}
+
+function getAllowancePda(handle: bigint, allowedAddress: PublicKey): PublicKey {
+  const buf = Buffer.alloc(16);
+  let h = handle;
+  for (let i = 0; i < 16; i++) {
+    buf[i] = Number(h & BigInt(0xff));
+    h >>= BigInt(8);
+  }
+  const [pda] = PublicKey.findProgramAddressSync(
+    [buf, allowedAddress.toBuffer()],
+    INCO_LIGHTNING_PROGRAM_ID,
+  );
+  return pda;
+}
+
+function extractAmountHandle(base64Data: string): bigint {
+  const buf = Buffer.from(base64Data, "base64");
+  const bytes = buf.slice(72, 88);
+  let h = 0n;
+  for (let i = 15; i >= 0; i--) h = h * 256n + BigInt(bytes[i]);
+  return h;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,10 +89,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "invalid pubkey" }, { status: 400 });
     }
 
-    const mint = new PublicKey("7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB");
+    const mint = new PublicKey(MINT_ADDRESS);
+    const issuer = loadIssuerKeypair();
 
-    const issuer = loadKeypair(".keys/issuer.json");
-    const { connection, program } = makeProvider(issuer);
+    const connection = new Connection(RPC_URL, "confirmed");
+    const wallet = {
+      publicKey: issuer.publicKey,
+      signTransaction: async (tx: Transaction) => {
+        tx.partialSign(issuer);
+        return tx;
+      },
+      signAllTransactions: async (txs: Transaction[]) =>
+        txs.map((t) => {
+          t.partialSign(issuer);
+          return t;
+        }),
+    };
+    const provider = new anchor.AnchorProvider(connection, wallet as any, {
+      commitment: "confirmed",
+    });
+    anchor.setProvider(provider);
+    const idl = incoTokenIdl as anchor.Idl;
+    if (!(idl as any).address) (idl as any).address = INCO_TOKEN_PROGRAM_ID.toBase58();
+    const program = new anchor.Program(idl, provider);
 
     const { encryptValue } = (await import("@inco/solana-sdk/encryption")) as any;
     const { hexToBuffer } = (await import("@inco/solana-sdk/utils")) as any;
@@ -88,11 +163,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "no sim account data" }, { status: 500 });
     }
     const handle = extractAmountHandle(data);
-    // Grant decrypt allowance to the recipient (user), not the issuer.
-    // Covalidator looks up (handle, address) in the allowance PDA and rejects
-    // decrypt requests from any other address. Keeping issuer here means the
-    // user can NEVER decrypt their own balance — that was the airdrop.ts copy
-    // bug.
     const allowancePda = getAllowancePda(handle, userPubkey);
 
     const sig = await program.methods
@@ -110,9 +180,6 @@ export async function POST(req: NextRequest) {
       ])
       .rpc();
 
-    // Re-read the IncoAccount AFTER mint to get the post-mint handle (the one
-    // Covalidator will have indexed). The sim handle can drift if other state
-    // changed between sim and submit.
     let postHandleHex = handle.toString(16);
     try {
       await new Promise((r) => setTimeout(r, 800));
