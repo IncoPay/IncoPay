@@ -28,7 +28,7 @@ export default function TestPage() {
   useEffect(() => {
     if (connected && publicKey) {
       initializeProgram();
-      const mintStr = process.env.NEXT_PUBLIC_TOKEN_MINT;
+      const mintStr = "7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB";
       if (mintStr) {
         try {
           const ata = getIncoAssociatedTokenAddress(publicKey, new PublicKey(mintStr));
@@ -112,7 +112,7 @@ export default function TestPage() {
       return;
     }
 
-    const mintStr = process.env.NEXT_PUBLIC_TOKEN_MINT;
+    const mintStr = "7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB";
     if (!mintStr) {
       setStatus("Missing NEXT_PUBLIC_TOKEN_MINT. Set it to your IncoToken mint address (IncoMint).");
       return;
@@ -400,7 +400,7 @@ export default function TestPage() {
                   Token Mint (IncoMint) Address:
                 </p>
                 <code className="text-xs text-[var(--text-paragraph)] font-mono break-all">
-                  {process.env.NEXT_PUBLIC_TOKEN_MINT || "Not set (use IncoToken mint)"}
+                  {"7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB"}
                 </code>
                 <p className="mt-2 text-xs text-[var(--text-paragraph)] font-sans">
                   For confidential transfers this must be an <strong>IncoMint</strong> from the IncoToken program (initialize_mint), not the SPL mint from deploy-token. Create IncoToken accounts (create/create_idempotent) for source and recipient.

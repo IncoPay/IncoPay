@@ -35,7 +35,7 @@ function getSolscanTxSignature(value: string): string {
   }
 }
 
-const FACILITATOR_URL = process.env.NEXT_PUBLIC_FACILITATOR_URL || "http://localhost:3001";
+const FACILITATOR_URL = "https://inco-facilitator-production.up.railway.app";
 const DEMO_PRICE = 1; // 1 INCO token for the box
 const DECIMALS = 9;
 /** Default merchant/receiver wallet for 1 INCO payment (IncoToken account owner). */
@@ -55,12 +55,8 @@ export default function Test2Page() {
       return;
     }
 
-    const mintStr = process.env.NEXT_PUBLIC_TOKEN_MINT;
-    const paymentReceiverStr = process.env.NEXT_PUBLIC_PAYMENT_RECEIVER || DEFAULT_PAYMENT_RECEIVER;
-    if (!mintStr) {
-      setStatus("Missing NEXT_PUBLIC_TOKEN_MINT. Set it to your IncoToken mint address.");
-      return;
-    }
+    const mintStr = "7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB";
+    const paymentReceiverStr = "55LEmvuVgujxEvbrYBiDXBZmMxu3dMofVvT6uCq4q2xK";
 
     let mint: PublicKey;
     let paymentReceiver: PublicKey;

@@ -18,7 +18,7 @@ export default function TestFacilitatorPage() {
   const [loading, setLoading] = useState(false);
   const [paymentResult, setPaymentResult] = useState<any>(null);
 
-  const FACILITATOR_URL = process.env.NEXT_PUBLIC_FACILITATOR_URL || 'http://localhost:3001';
+  const FACILITATOR_URL = 'https://inco-facilitator-production.up.railway.app';
   const TEST_API_URL = `${FACILITATOR_URL}/test-payment`;
 
   const handleTestPayment = async () => {

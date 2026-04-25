@@ -24,8 +24,8 @@ export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
 
   // You can also provide a custom RPC endpoint
   const endpoint = useMemo(() => {
-    return process.env.NEXT_PUBLIC_SOLANA_RPC_URL || clusterApiUrl(network);
-  }, [network]);
+    return "https://api.devnet.solana.com";
+  }, []);
 
   // Initialize wallets - only client-side
   const wallets = useMemo(

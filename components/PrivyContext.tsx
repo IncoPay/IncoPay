@@ -4,7 +4,7 @@ import { PrivyProvider } from "@privy-io/react-auth";
 import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";
 import { useMemo } from "react";
 
-const APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID || "";
+const APP_ID = "cm460yws102ojb14qxlaap9yk";
 
 export default function PrivyContext({ children }: { children: React.ReactNode }) {
   const solanaConnectors = useMemo(

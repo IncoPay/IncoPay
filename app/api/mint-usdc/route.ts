@@ -33,11 +33,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "invalid pubkey" }, { status: 400 });
     }
 
-    const mintStr = process.env.TOKEN_MINT || process.env.NEXT_PUBLIC_TOKEN_MINT;
-    if (!mintStr) {
-      return NextResponse.json({ error: "TOKEN_MINT not set in env" }, { status: 500 });
-    }
-    const mint = new PublicKey(mintStr);
+    const mint = new PublicKey("7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB");
 
     const issuer = loadKeypair(".keys/issuer.json");
     const { connection, program } = makeProvider(issuer);

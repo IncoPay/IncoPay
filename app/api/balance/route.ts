@@ -29,14 +29,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "invalid pubkey" }, { status: 400 });
     }
 
-    const mintStr = process.env.TOKEN_MINT || process.env.NEXT_PUBLIC_TOKEN_MINT;
-    if (!mintStr) {
-      return NextResponse.json({ error: "TOKEN_MINT not set in env" }, { status: 500 });
-    }
-    const mint = new PublicKey(mintStr);
+    const mint = new PublicKey("7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB");
 
-    const rpcUrl = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
-    const connection = new Connection(rpcUrl, "confirmed");
+    const connection = new Connection("https://api.devnet.solana.com", "confirmed");
 
     const ata = getIncoAta(userPubkey, mint);
     const info = await connection.getAccountInfo(ata);

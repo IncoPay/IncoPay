@@ -34,7 +34,7 @@ function getSolscanTxSignature(value: string): string {
   }
 }
 
-const FACILITATOR_URL = process.env.NEXT_PUBLIC_FACILITATOR_URL || "http://localhost:4021";
+const FACILITATOR_URL = "https://inco-facilitator-production.up.railway.app";
 const DEMO_PRICE = 1;
 const DECIMALS = 6; // Our Inco-USDC mint is 6 decimals (matches Circle USDC convention)
 // Merchant for the demo. Must have an IncoAccount on TOKEN_MINT.
@@ -121,12 +121,8 @@ export default function Started() {
       setStatus("Please connect your wallet");
       return;
     }
-    const mintStr = process.env.NEXT_PUBLIC_TOKEN_MINT;
-    const paymentReceiverStr = process.env.NEXT_PUBLIC_PAYMENT_RECEIVER || DEFAULT_PAYMENT_RECEIVER;
-    if (!mintStr) {
-      setStatus("Missing NEXT_PUBLIC_TOKEN_MINT. Set it to your IncoToken mint address.");
-      return;
-    }
+    const mintStr = "7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB";
+    const paymentReceiverStr = "55LEmvuVgujxEvbrYBiDXBZmMxu3dMofVvT6uCq4q2xK";
     let mint: PublicKey;
     let paymentReceiver: PublicKey;
     try {
