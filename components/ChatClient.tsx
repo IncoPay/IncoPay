@@ -403,7 +403,7 @@ function ChatInner() {
               </a>
             </div>
           )}
-          {balanceErr && (
+          {balanceErr && !/keypair not found|TOKEN_MINT/i.test(balanceErr) && (
             <p style={{ marginTop: 10, color: "#f87171", fontSize: 13 }}>{balanceErr}</p>
           )}
         </div>

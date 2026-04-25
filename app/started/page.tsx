@@ -292,10 +292,19 @@ export default function Started() {
       setApiData(JSON.stringify(mockApiData, null, 2));
       setStatus("Done! Payment verified and settled.");
     } catch (error: any) {
-      if (error.message?.includes("User rejected") || error.message?.includes("User denied")) {
+      const msg = error?.message || String(error);
+      if (msg.includes("User rejected") || msg.includes("User denied")) {
         setStatus("Signing cancelled by user.");
+      } else if (/already been processed/i.test(msg)) {
+        const mockApiData = {
+          unlocked: true,
+          message: "Payment already settled. You paid 1 USDC token (confidential).",
+          timestamp: new Date().toISOString(),
+        };
+        setApiData(JSON.stringify(mockApiData, null, 2));
+        setStatus("Already paid — content unlocked.");
       } else {
-        setStatus(`Error: ${error?.message || String(error)}`);
+        setStatus(`Error: ${msg}`);
       }
     } finally {
       setLoading(false);
