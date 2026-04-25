@@ -5,8 +5,6 @@ import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";
 import { useMemo } from "react";
 
 const APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID || "";
-const RPC_URL =
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
 
 export default function PrivyContext({ children }: { children: React.ReactNode }) {
   const solanaConnectors = useMemo(
@@ -46,9 +44,6 @@ export default function PrivyContext({ children }: { children: React.ReactNode }
         externalWallets: {
           solana: { connectors: solanaConnectors },
         },
-        solanaClusters: [
-          { name: "devnet", rpcUrl: RPC_URL },
-        ],
       }}
     >
       {children}
