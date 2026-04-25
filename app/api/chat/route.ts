@@ -13,8 +13,8 @@ const RECIPIENT = "55LEmvuVgujxEvbrYBiDXBZmMxu3dMofVvT6uCq4q2xK";
 const MINT = "7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB";
 const NETWORK = "solana:devnet";
 const PER_CALL_BASE_UNITS = "500000"; // 0.5 USDC (@ 6 decimals)
-const OLLAMA_URL = "http://localhost:11434";
-const OLLAMA_MODEL = "llama3.2:1b";
+const AI_URL = "https://0ziii4vt975sjd-8000.proxy.runpod.net/v1/chat/completions";
+const AI_MODEL = "Qwen/Qwen3-VL-8B-Instruct";
 
 function b64(s: string): string {
   return Buffer.from(s, "utf8").toString("base64");
@@ -106,20 +106,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "missing_prompt" }, { status: 400 });
   }
 
-  let reply = "(ollama unreachable, but payment settled ✓)";
+  let reply = "(AI unreachable, but payment settled ✓)";
   try {
-    const oll = await fetch(`${OLLAMA_URL}/api/generate`, {
+    const aiRes = await fetch(AI_URL, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        model: OLLAMA_MODEL,
-        prompt,
-        stream: false,
+        model: AI_MODEL,
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 512,
       }),
     });
-    if (oll.ok) {
-      const j = await oll.json();
-      reply = j.response || "(empty ollama reply)";
+    if (aiRes.ok) {
+      const j = await aiRes.json();
+      reply = j?.choices?.[0]?.message?.content || "(empty AI reply)";
     }
   } catch {
     // keep fallback

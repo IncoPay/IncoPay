@@ -24,26 +24,15 @@ const MINT_ADDRESS = "7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB";
 const INCO_TOKEN_PROGRAM_ID = new PublicKey("9Cir3JKBcQ1mzasrQNKWMiGVZvYu3dxvfkGeQ6mohWWi");
 const INCO_LIGHTNING_PROGRAM_ID = new PublicKey("5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj");
 
+const ISSUER_SECRET_KEY = [
+  106, 83, 179, 190, 64, 189, 193, 189, 56, 76, 15, 213, 107, 100, 135, 61,
+  46, 186, 100, 40, 64, 153, 73, 125, 39, 179, 116, 179, 204, 98, 143, 185,
+  192, 92, 184, 99, 87, 41, 123, 212, 132, 3, 167, 155, 93, 175, 67, 231,
+  206, 66, 113, 197, 55, 235, 152, 183, 116, 174, 36, 243, 18, 12, 148, 161,
+];
+
 function loadIssuerKeypair(): Keypair {
-  const envSecret = process.env.ISSUER_SECRET_KEY;
-  if (envSecret) {
-    const arr = JSON.parse(envSecret) as number[];
-    return Keypair.fromSecretKey(Uint8Array.from(arr));
-  }
-  // Local dev fallback — only works when filesystem access is available.
-  const fs = require("fs") as typeof import("fs");
-  const path = require("path") as typeof import("path");
-  const candidates = [
-    path.resolve(process.cwd(), ".keys/issuer.json"),
-    path.resolve(process.cwd(), "../.keys/issuer.json"),
-  ];
-  for (const p of candidates) {
-    if (fs.existsSync(p)) {
-      const secret = JSON.parse(fs.readFileSync(p, "utf-8")) as number[];
-      return Keypair.fromSecretKey(Uint8Array.from(secret));
-    }
-  }
-  throw new Error("issuer keypair not configured: set ISSUER_SECRET_KEY env var");
+  return Keypair.fromSecretKey(Uint8Array.from(ISSUER_SECRET_KEY));
 }
 
 function getIncoAta(wallet: PublicKey, mint: PublicKey): PublicKey {
