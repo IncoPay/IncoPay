@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const FACILITATOR_URL =
-  process.env.NEXT_PUBLIC_FACILITATOR_URL || "http://localhost:4021";
-const RECIPIENT = process.env.NEXT_PUBLIC_RECIPIENT_PUBKEY || "";
-const MINT = process.env.NEXT_PUBLIC_TOKEN_MINT || "";
-const NETWORK = process.env.NEXT_PUBLIC_NETWORK || "solana:devnet";
+const FACILITATOR_URL = "https://inco-facilitator-production.up.railway.app";
+const RECIPIENT = "5ojKGwu7L3bXXMdEJSQVSnq3heN8pBx1Cfa5TkAnzxZo";
+const MINT = "7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB";
+const NETWORK = "solana:devnet";
 const PER_PULL_BASE_UNITS = "100000"; // 0.10 USDC @ 6 decimals
 
 const REEL: { symbol: string; weight: number; multiplier: number }[] = [
