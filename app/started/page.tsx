@@ -331,33 +331,6 @@ export default function Started() {
               </Link>
             </div>
             <div className="flex items-center gap-3">
-              <nav className="flex items-center gap-2 sm:gap-3 text-sm">
-                <Link
-                  href="/started"
-                  className="px-3 sm:px-4 py-2 rounded-lg text-white font-medium bg-white/5 border border-white/10"
-                >
-                  Get Started
-                </Link>
-                <Link
-                  href="/sessions"
-                  className="px-4 sm:px-5 py-2 rounded-lg bg-[#2463EB] text-white font-medium hover:bg-[#1d4ed8] transition-colors inline-flex items-center gap-2 shadow-lg shadow-[#2463EB]/30"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  </svg>
-                  Sessions
-                </Link>
-                <Link
-                  href="/slot"
-                  className="px-4 sm:px-5 py-2 rounded-lg bg-[#2463EB] text-white font-medium hover:bg-[#1d4ed8] transition-colors inline-flex items-center gap-2 shadow-lg shadow-[#2463EB]/30"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                    <circle cx="12" cy="12" r="2" />
-                  </svg>
-                  Slot
-                </Link>
-              </nav>
               <WalletButton />
             </div>
           </div>

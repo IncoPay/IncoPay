@@ -62,12 +62,6 @@ export default function Landing() {
         </div>
         <nav className="flex items-center gap-3 sm:gap-4 text-sm">
           <Link
-            href="/started"
-            className="px-3 sm:px-4 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition-colors"
-          >
-            Get Started
-          </Link>
-          <Link
             href="/sessions"
             className="px-4 sm:px-5 py-2 rounded-lg bg-[#2463EB] text-white font-medium hover:bg-[#1d4ed8] transition-colors inline-flex items-center gap-2 shadow-lg shadow-[#2463EB]/30"
           >
@@ -131,7 +125,7 @@ export default function Landing() {
               
               {/* Subtext */}
               <p className="text-lg md:text-xl text-zinc-300 max-w-3xl mx-auto mb-10 leading-relaxed font-sans drop-shadow-md">
-                Redefining smart contracts with confidentiality at the core, enabling private payments and real-world everyday use.
+                Session-based private x402 on Solana — enabling continuous micropayments with a single, secure approval.
               </p>
             </div>
             
@@ -143,19 +137,18 @@ export default function Landing() {
                   <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                 </button>
               </Link>
-              <Link href="/docs">
-                <button className="min-w-[140px] sm:min-w-[160px] px-8 py-3 bg-transparent text-white border border-[#2463EB] rounded-sm font-medium text-lg hover:bg-[#2463EB]/10 transition-all duration-200 relative group flex flex-col items-center justify-center gap-0.5">
-                  <span className="relative z-10">Docs</span>
-                  <span className="relative z-10 text-[10px] sm:text-xs font-medium uppercase tracking-wider text-[#2463EB]">
-                    Coming soon
-                  </span>
-                  {/* Corner accents for Docs button */}
-                  <div className="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-[#2463EB]"></div>
-                  <div className="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-[#2463EB]"></div>
-                  <div className="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-[#2463EB]"></div>
-                  <div className="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-[#2463EB]"></div>
-                </button>
-              </Link>
+              <a
+                href="https://inco-pay-docs.vercel.app/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-w-[140px] sm:min-w-[160px] px-8 py-3 bg-transparent text-white border border-[#2463EB] rounded-sm font-medium text-lg hover:bg-[#2463EB]/10 transition-all duration-200 relative group inline-flex items-center justify-center"
+              >
+                <span className="relative z-10">Docs</span>
+                <span className="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-[#2463EB]" />
+                <span className="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-[#2463EB]" />
+                <span className="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-[#2463EB]" />
+                <span className="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-[#2463EB]" />
+              </a>
             </div>
           </div>
         </div>
