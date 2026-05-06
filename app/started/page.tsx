@@ -314,9 +314,9 @@ export default function Started() {
   return (
     <>
       <style>{customStyles}</style>
-      <div className="min-h-screen bg-[var(--bg-primary)] flex">
-        <div className="w-1/2 relative flex flex-col px-8 py-6 sm:px-12 sm:py-8">
-          <div className="w-full flex items-center justify-between gap-2 sm:gap-3">
+       <div className="min-h-screen bg-[var(--bg-primary)] flex">
+         <div className="w-1/2 relative flex flex-col px-8 py-6 sm:px-12 sm:py-8">
+           <div className="w-full flex items-center justify-between gap-2 sm:gap-3 relative z-50">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--button-bg)] flex items-center justify-center">
                 <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" xmlns="http://www.w3.org/2000/svg">

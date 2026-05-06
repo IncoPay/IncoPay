@@ -23,9 +23,20 @@ const PER_CALL_BASE_UNITS = 500_000n; // 0.5 USDC @ 6 decimals
 interface Msg {
   role: "user" | "bot" | "err";
   text: string;
+  txLink?: string;
 }
 
 const LS_KEY = "inco-x402-session:v1";
+const DECIMALS = 6; // Token decimals
+
+// Format base units to human-readable USDC
+function formatUSDC(baseUnits: string | bigint): string {
+  const bi = typeof baseUnits === "string" ? BigInt(baseUnits) : baseUnits;
+  const whole = bi / BigInt(10 ** DECIMALS);
+  const frac = bi % BigInt(10 ** DECIMALS);
+  const fracStr = frac.toString().padStart(DECIMALS, "0");
+  return `${whole}.${fracStr}`.replace(/\.?0+$/, "");
+}
 
 interface PersistedSession {
   sessionId: string;
@@ -143,13 +154,13 @@ function ChatInner() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ user: userPubkey, amount: 100 }),
       });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "mint failed");
-      setMintTx(j.sig);
-      setMsgs((m) => [
-        ...m,
-        { role: "bot", text: `Minted 100 USDC (encrypted) to your IncoAccount. tx: ${String(j.sig).slice(0, 16)}…` },
-      ]);
+       const j = await r.json();
+       if (!r.ok) throw new Error(j.error || "mint failed");
+       setMintTx(j.sig);
+       setMsgs((m) => [
+         ...m,
+         { role: "bot", text: `Minted 100 USDC (encrypted) to your IncoAccount.`, txLink: j.sig },
+       ]);
       await new Promise((r) => setTimeout(r, 1200));
       await refreshBalance();
     } catch (e) {
@@ -159,33 +170,37 @@ function ChatInner() {
     }
   }
 
-  async function onDecryptBalance() {
-    if (!publicKey || !signMessage || !balanceHandle) return;
-    setDecrypting(true);
-    setBalanceErr(null);
-    try {
-      const { decrypt } = (await import("@inco/solana-sdk/attested-decrypt")) as any;
-      // Covalidator's index keys handles by DECIMAL u128 string. Hex (with or
-      // without 0x) is rejected. Convert here.
-      const decimalHandle = BigInt(`0x${balanceHandle.replace(/^0x/, "")}`).toString();
-      const result = await decrypt([decimalHandle], {
-        address: publicKey,
-        signMessage: async (msg: Uint8Array) => signMessage(msg),
-      });
-      const plain = BigInt(result.plaintexts[0]);
-      const ui = (Number(plain) / 1_000_000).toFixed(2);
-      setDecrypted(ui);
-      setAutoReveal(true);
-    } catch (e) {
-      const err = e as any;
-      console.error("[decrypt] full error:", err);
-      const causeMsg = err?.cause?.message || err?.cause?.toString?.() || "";
-      const composed = causeMsg ? `${err?.message} — cause: ${causeMsg}` : err?.message;
-      setBalanceErr(`decrypt failed: ${composed}`);
-    } finally {
-      setDecrypting(false);
-    }
-  }
+   async function onDecryptBalance() {
+     if (!publicKey || !signMessage || !balanceHandle) return;
+     setDecrypting(true);
+     setBalanceErr(null);
+     try {
+       const { decrypt } = (await import("@inco/solana-sdk/attested-decrypt")) as any;
+       // Covalidator's index keys handles by DECIMAL u128 string. Hex (with or
+       // without 0x) is rejected. Convert here.
+       const decimalHandle = BigInt(`0x${balanceHandle.replace(/^0x/, "")}`).toString();
+       const result = await decrypt([decimalHandle], {
+         address: publicKey,
+         signMessage: async (msg: Uint8Array) => {
+           // Format the message display to show hex instead of scientific notation
+           console.log(`[decrypt] signing message with handle: 0x${balanceHandle.slice(0, 16)}…`);
+           return signMessage(msg);
+         },
+       });
+       const plain = BigInt(result.plaintexts[0]);
+       const ui = (Number(plain) / 1_000_000).toFixed(2);
+       setDecrypted(ui);
+       setAutoReveal(true);
+     } catch (e) {
+       const err = e as any;
+       console.error("[decrypt] full error:", err);
+       const causeMsg = err?.cause?.message || err?.cause?.toString?.() || "";
+       const composed = causeMsg ? `${err?.message} — cause: ${causeMsg}` : err?.message;
+       setBalanceErr(`decrypt failed: ${composed}`);
+     } finally {
+       setDecrypting(false);
+     }
+   }
 
   useEffect(() => {
     if (!userPubkey) return;
@@ -203,12 +218,12 @@ function ChatInner() {
           ...stored,
           fetch: wrapFetch(stored.sessionId, stored.facilitatorUrl),
         };
-        setSession(handle);
-        setStats({ spent: row.spent, remaining: (BigInt(row.cap) - BigInt(row.spent)).toString() });
-        setMsgs((m) => [
-          ...m,
-          { role: "bot", text: `Resumed session ${stored.sessionId.slice(0, 8)}… (spent ${row.spent}/${row.cap})` },
-        ]);
+         setSession(handle);
+         setStats({ spent: row.spent, remaining: (BigInt(row.cap) - BigInt(row.spent)).toString() });
+         setMsgs((m) => [
+           ...m,
+           { role: "bot", text: `Resumed session ${stored.sessionId.slice(0, 8)}… (spent ${formatUSDC(row.spent)}/${formatUSDC(row.cap)} USDC)` },
+         ]);
       } catch {
         // ignore
       }
@@ -237,12 +252,14 @@ function ChatInner() {
     if (!createSvmSigner) return;
     setBusy(true);
     try {
+      // Convert cap from USDC to base units (6 decimals)
+      const capBaseUnits = (BigInt(Math.floor(Number(cap) * 10 ** DECIMALS))).toString();
       const s = await createSession({
         facilitatorUrl: FACILITATOR_URL,
         network: NETWORK,
         asset: MINT,
         recipient: RECIPIENT,
-        cap,
+        cap: capBaseUnits,
         expirationSeconds: 3600,
         signer: createSvmSigner,
         solanaRpcUrl: RPC_URL,
@@ -251,7 +268,7 @@ function ChatInner() {
       storeSession(s);
       setMsgs((m) => [
         ...m,
-        { role: "bot", text: `Session opened: ${s.sessionId.slice(0, 8)}… (cap: ${cap} USDC)` },
+        { role: "bot", text: `Session opened: ${s.sessionId.slice(0, 8)}… (cap: ${formatUSDC(s.cap)} USDC)` },
       ]);
     } catch (e) {
       setMsgs((m) => [
@@ -361,15 +378,15 @@ function ChatInner() {
           <div className="row" style={{ justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <div>
               <div className="label">Private USDC balance (encrypted on-chain)</div>
-              <div className="value" style={{ marginTop: 4 }}>
-                {!balanceAccountExists
-                  ? "no IncoAccount yet — mint to create one"
-                  : decrypted !== null
-                    ? `$${decrypted} USDC (decrypted in-browser)`
-                    : balanceHandle
-                      ? `🔒 handle 0x${balanceHandle.slice(0, 10)}… (sign to decrypt)`
-                      : "loading…"}
-              </div>
+               <div className="value" style={{ marginTop: 4 }}>
+                 {!balanceAccountExists
+                   ? "no IncoAccount yet — mint to create one"
+                   : decrypted !== null
+                     ? `$${decrypted} USDC (decrypted in-browser)`
+                     : balanceHandle
+                       ? `🔒 handle ${balanceHandle.slice(0, 10)}… (sign to decrypt)`
+                       : "loading…"}
+               </div>
             </div>
             <div className="row" style={{ gap: 8 }}>
               <button onClick={onMint} disabled={minting} style={{ background: "#2463EB" }}>
@@ -464,10 +481,10 @@ function ChatInner() {
               End session
             </button>
           </div>
-          <div className="stat"><span>id</span><span className="value">{session.sessionId}</span></div>
-          <div className="stat"><span>cap</span><span className="value">{session.cap} base units</span></div>
-          <div className="stat"><span>spent</span><span className="value">{stats.spent ?? "0"}</span></div>
-          <div className="stat"><span>remaining</span><span className="value">{stats.remaining ?? session.cap}</span></div>
+           <div className="stat"><span>id</span><span className="value">{session.sessionId}</span></div>
+           <div className="stat"><span>cap</span><span className="value">{formatUSDC(session.cap)} USDC</span></div>
+           <div className="stat"><span>spent</span><span className="value">{formatUSDC(stats.spent ?? "0")} USDC</span></div>
+           <div className="stat"><span>remaining</span><span className="value">{formatUSDC(stats.remaining ?? session.cap)} USDC</span></div>
           {stats.lastTx && (
             <div className="stat">
               <span>last tx</span>
@@ -486,15 +503,29 @@ function ChatInner() {
 
       <div className="card" style={{ minHeight: 260 }}>
         <div className="chat">
-          {msgs.length === 0 && (
-            <div style={{ color: "#7c7c8a", fontSize: 14 }}>No messages yet.</div>
-          )}
-          {msgs.map((m, i) => (
-            <div key={i} className={`msg ${m.role}`}>
-              {m.text}
-            </div>
-          ))}
-        </div>
+           {msgs.length === 0 && (
+             <div style={{ color: "#7c7c8a", fontSize: 14 }}>No messages yet.</div>
+           )}
+           {msgs.map((m, i) => (
+             <div key={i} className={`msg ${m.role}`}>
+               {m.txLink ? (
+                 <>
+                   {m.text}{" "}
+                   <a
+                     href={`https://explorer.solana.com/tx/${m.txLink}?cluster=devnet`}
+                     target="_blank"
+                     rel="noreferrer"
+                     style={{ color: "#60A5FA", textDecoration: "underline", cursor: "pointer" }}
+                   >
+                     {m.txLink.slice(0, 16)}…
+                   </a>
+                 </>
+               ) : (
+                 m.text
+               )}
+             </div>
+           ))}
+         </div>
         {sessionExhausted && (
           <div
             style={{
