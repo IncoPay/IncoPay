@@ -19,6 +19,7 @@ const MINT = "7crFMbJN7hxVhUPNcRRxTGr9nD3TnvpZ8pNZepA19wuB";
 const RECIPIENT = "55LEmvuVgujxEvbrYBiDXBZmMxu3dMofVvT6uCq4q2xK";
 const NETWORK: Network = "solana:devnet";
 const PER_CALL_BASE_UNITS = 500_000n; // 0.5 USDC @ 6 decimals
+const PER_CALL_USDC = 0.5; // keep in sync with PER_CALL_BASE_UNITS
 
 interface Msg {
   role: "user" | "bot" | "err";
@@ -176,11 +177,13 @@ function ChatInner() {
      setBalanceErr(null);
      try {
        const { decrypt } = (await import("@inco/solana-sdk/attested-decrypt")) as any;
-       const hexHandle = balanceHandle.replace(/^0x/, "");
-       const result = await decrypt([hexHandle], {
+       // Inco SDK does BigInt(handle) internally — accepts decimal OR
+       // 0x-prefixed hex. Bare hex throws "Cannot convert … to a BigInt".
+       const handleArg = `0x${balanceHandle.replace(/^0x/, "")}`;
+       const result = await decrypt([handleArg], {
          address: publicKey,
          signMessage: async (msg: Uint8Array) => {
-           console.log(`[decrypt] signing handle: 0x${hexHandle.slice(0, 16)}…`);
+           console.log(`[decrypt] signing handle: ${handleArg.slice(0, 18)}…`);
            return signMessage(msg);
          },
        });
@@ -291,12 +294,19 @@ function ChatInner() {
       });
       if (!r.ok) {
         const body = await r.text();
-        const looksLikeCap = body.includes("cap_exceeded") || body.includes("insufficient");
+        const remainingBu = stats.remaining
+          ? BigInt(stats.remaining)
+          : BigInt(session.cap);
+        const capTooLow = remainingBu < PER_CALL_BASE_UNITS;
+        const looksLikeCap =
+          body.includes("cap_exceeded") || body.includes("insufficient");
         setMsgs((m) => [
           ...m,
           {
             role: "err",
-            text: looksLikeCap
+            text: capTooLow
+              ? `Session can't cover one message — remaining $${formatUSDC(remainingBu.toString())} USDC < $${PER_CALL_USDC.toFixed(2)} per message. End this session and open one with cap ≥ $${PER_CALL_USDC.toFixed(2)}.`
+              : looksLikeCap
               ? "Session cap reached. Start a new session to keep chatting."
               : `${r.status}: ${body.slice(0, 200)}`,
           },
@@ -448,12 +458,23 @@ function ChatInner() {
               />
             )}
             <button
-              disabled={!canCreateSession || busy || !cap || Number(cap) <= 0}
+              disabled={
+                !canCreateSession ||
+                busy ||
+                !cap ||
+                Number(cap) < PER_CALL_USDC
+              }
               onClick={onCreateSession}
             >
               {busy ? "Signing…" : `Authorize $${cap || "0"}`}
             </button>
           </div>
+          {cap && Number(cap) > 0 && Number(cap) < PER_CALL_USDC && (
+            <p style={{ marginTop: 10, color: "#fbbf24", fontSize: 13 }}>
+              Cap must be at least ${PER_CALL_USDC.toFixed(2)} — each message
+              settles ${PER_CALL_USDC.toFixed(2)} USDC.
+            </p>
+          )}
           {!MINT && (
             <p style={{ marginTop: 10, color: "#f87171", fontSize: 13 }}>
               NEXT_PUBLIC_TOKEN_MINT not set in <code>IncoPay/.env.local</code>.
