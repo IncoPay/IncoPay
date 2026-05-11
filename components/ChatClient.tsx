@@ -176,14 +176,11 @@ function ChatInner() {
      setBalanceErr(null);
      try {
        const { decrypt } = (await import("@inco/solana-sdk/attested-decrypt")) as any;
-       // Covalidator's index keys handles by DECIMAL u128 string. Hex (with or
-       // without 0x) is rejected. Convert here.
-       const decimalHandle = BigInt(`0x${balanceHandle.replace(/^0x/, "")}`).toString();
-       const result = await decrypt([decimalHandle], {
+       const hexHandle = balanceHandle.replace(/^0x/, "");
+       const result = await decrypt([hexHandle], {
          address: publicKey,
          signMessage: async (msg: Uint8Array) => {
-           // Format the message display to show hex instead of scientific notation
-           console.log(`[decrypt] signing message with handle: 0x${balanceHandle.slice(0, 16)}…`);
+           console.log(`[decrypt] signing handle: 0x${hexHandle.slice(0, 16)}…`);
            return signMessage(msg);
          },
        });
@@ -252,14 +249,14 @@ function ChatInner() {
     if (!createSvmSigner) return;
     setBusy(true);
     try {
-      // Convert cap from USDC to base units (6 decimals)
-      const capBaseUnits = (BigInt(Math.floor(Number(cap) * 10 ** DECIMALS))).toString();
+      // SDK's createSession takes cap as a decimal USDC string and applies
+      // 10^decimals internally — do NOT pre-multiply here or it double-scales.
       const s = await createSession({
         facilitatorUrl: FACILITATOR_URL,
         network: NETWORK,
         asset: MINT,
         recipient: RECIPIENT,
-        cap: capBaseUnits,
+        cap,
         expirationSeconds: 3600,
         signer: createSvmSigner,
         solanaRpcUrl: RPC_URL,

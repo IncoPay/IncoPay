@@ -115,6 +115,8 @@ export function SlotMachine() {
   const [pulls, setPulls] = useState(0);
   const [wins, setWins] = useState(0);
   const [biggestMultiplier, setBiggestMultiplier] = useState(0);
+  const [lastDebit, setLastDebit] = useState<{ amount: number; tx: string } | null>(null);
+  const [showDebitFlash, setShowDebitFlash] = useState(false);
 
   const cap =
     authAmount === "manual"
@@ -220,9 +222,14 @@ export function SlotMachine() {
         throw new Error(`pull ${res.status}: ${errText.slice(0, 200)}`);
       }
 
-      const data = (await res.json()) as PullResult;
+      const data = (await res.json()) as PullResult & { paymentTx?: string };
       setSpent((s) => s + PER_PULL_USDC);
       setPulls((p) => p + 1);
+      if (data.paymentTx) {
+        setLastDebit({ amount: PER_PULL_USDC, tx: data.paymentTx });
+        setShowDebitFlash(true);
+        setTimeout(() => setShowDebitFlash(false), 1800);
+      }
       if (data.win) {
         setWins((w) => w + 1);
         if (data.multiplier > biggestMultiplier) setBiggestMultiplier(data.multiplier);
@@ -258,6 +265,8 @@ export function SlotMachine() {
     setBiggestMultiplier(0);
     setReels(PLACEHOLDER_REELS);
     setLastResult(null);
+    setLastDebit(null);
+    setShowDebitFlash(false);
     setErrorMsg(null);
     if (typeof localStorage !== "undefined") localStorage.removeItem(LS_KEY);
   }
@@ -388,7 +397,22 @@ export function SlotMachine() {
         )}
       </div>
 
-      <div className="bg-gradient-to-b from-white/5 to-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-xl">
+      <div className="bg-gradient-to-b from-white/5 to-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-xl relative">
+        <AnimatePresence>
+          {showDebitFlash && lastDebit && (
+            <motion.div
+              key={lastDebit.tx}
+              initial={{ opacity: 0, y: 0, scale: 0.9 }}
+              animate={{ opacity: 1, y: -40, scale: 1 }}
+              exit={{ opacity: 0, y: -80 }}
+              transition={{ duration: 1.4, ease: "easeOut" }}
+              className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-1/2 z-10 px-4 py-2 rounded-xl bg-red-500/20 border border-red-400/40 text-red-300 font-mono text-lg font-bold shadow-lg shadow-red-500/30"
+            >
+              −${lastDebit.amount.toFixed(2)} USDC
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="flex justify-center gap-3 sm:gap-6 mb-8">
           {[0, 1, 2].map((i) => (
             <div
@@ -453,6 +477,23 @@ export function SlotMachine() {
             >
               {lastResult.payoutLabel}
             </motion.div>
+          )}
+
+          {lastDebit && (
+            <div className="text-center text-xs font-mono text-white/50 mt-1 flex flex-wrap items-center justify-center gap-2">
+              <span className="text-red-400/80">
+                debited −${lastDebit.amount.toFixed(2)}
+              </span>
+              <span className="text-white/30">·</span>
+              <a
+                href={`https://explorer.solana.com/tx/${lastDebit.tx}?cluster=devnet`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#60A5FA] hover:text-[#93C5FD] underline-offset-2 hover:underline"
+              >
+                tx {lastDebit.tx.slice(0, 8)}…
+              </a>
+            </div>
           )}
 
           {!session && walletAddress && (
