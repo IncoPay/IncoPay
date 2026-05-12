@@ -177,13 +177,11 @@ function ChatInner() {
      setBalanceErr(null);
      try {
        const { decrypt } = (await import("@inco/solana-sdk/attested-decrypt")) as any;
-       // Inco SDK does BigInt(handle) internally — accepts decimal OR
-       // 0x-prefixed hex. Bare hex throws "Cannot convert … to a BigInt".
        const handleArg = `0x${balanceHandle.replace(/^0x/, "")}`;
        const result = await decrypt([handleArg], {
          address: publicKey,
          signMessage: async (msg: Uint8Array) => {
-           console.log(`[decrypt] signing handle: ${handleArg.slice(0, 18)}…`);
+           console.log(`[decrypt] signing handle: ${handleArg.slice(0, 16)}…`);
            return signMessage(msg);
          },
        });
